@@ -13,6 +13,11 @@ concurrency:
 jobs:
   unit:
     runs-on: ubuntu-latest
+    env:
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      JWT_SECRET: ci-jwt-secret-change-in-production-32chars
+      JWT_REFRESH_SECRET: ci-refresh-secret-change-in-production
+      ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -34,7 +39,7 @@ jobs:
         run: |
           {
             echo "### Job \`unit\`"
-            echo "- 31 tests unitarios"
+            echo "- 32 tests unitarios"
             echo "- Artifact \`openapi-spec\` (apps/api/dist/openapi.json)"
           } >> "$GITHUB_STEP_SUMMARY"
 
