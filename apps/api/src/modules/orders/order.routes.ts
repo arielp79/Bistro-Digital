@@ -1,0 +1,52 @@
+import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
+import { tenantMiddleware } from '../../middlewares/tenant.middleware.js';
+import { authMiddleware, requireRole } from '../../middlewares/auth.middleware.js';
+import { requireTenantMatch } from '../../middlewares/tenant-access.middleware.js';
+import {
+  createOrder,
+  getOrder,
+  getOrderStatus,
+  listOrders,
+  updateOrderStatus,
+  closeOrder,
+} from './order.controller.js';
+
+const router = Router();
+
+const orderLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => `${req.tenant?._id ?? 'unknown'}:${req.ip}`,
+});
+
+const staffRoles = requireRole('waiter', 'kitchen', 'cashier', 'admin');
+
+router.post('/', tenantMiddleware, orderLimiter, createOrder);
+
+router.get('/', tenantMiddleware, authMiddleware, requireTenantMatch, staffRoles, listOrders);
+
+router.get('/:orderId/status', tenantMiddleware, getOrderStatus);
+router.get('/:orderId', tenantMiddleware, getOrder);
+
+router.patch(
+  '/:orderId/status',
+  tenantMiddleware,
+  authMiddleware,
+  requireTenantMatch,
+  requireRole('kitchen', 'cashier', 'admin'),
+  updateOrderStatus
+);
+
+router.post(
+  '/:orderId/close',
+  tenantMiddleware,
+  authMiddleware,
+  requireTenantMatch,
+  requireRole('waiter', 'cashier', 'admin'),
+  closeOrder
+);
+
+export default router;

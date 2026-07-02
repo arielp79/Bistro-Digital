@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npm run build --workspace=@bistro/shared-types
+      - run: npm run build --workspace=@bistro/validation-schemas
+      - run: npm run test:unit --workspace=@bistro/api
+      - run: npm run openapi:export --workspace=@bistro/api
+      - uses: actions/upload-artifact@v4
+        with:
+          name: openapi-spec
+          path: apps/api/dist/openapi.json
+          retention-days: 30
+      - name: Resumen job unit
+        if: always()
+        run: |
+          {
+            echo "### Job \`unit\`"
+            echo "- 31 tests unitarios"
+            echo "- Artifact \`openapi-spec\` (apps/api/dist/openapi.json)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  integration-e2e:
+    runs-on: ubuntu-latest
+    needs: unit
+    env:
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      JWT_SECRET: ci-jwt-secret-change-in-production-32chars
+      JWT_REFRESH_SECRET: ci-refresh-secret-change-in-production
+      ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      CI_INTEGRATION_STRICT: '1'
+      CI: 'true'
+      SKIP_DELIVERY_WORKER: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npm run build --workspace=@bistro/shared-types
+      - run: npm run build --workspace=@bistro/validation-schemas
+
+      - name: Preflight MongoDB
+        id: mongo
+        run: |
+          if [ -z "$MONGODB_URI" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "MONGODB_URI no configurado en secrets — integración y E2E omitidos."
+            exit 0
+          fi
+          npm run test:preflight --workspace=@bistro/api
+          echo "available=true" >> "$GITHUB_OUTPUT"
+
+      - name: Aviso — secret MONGODB_URI faltante
+        if: steps.mongo.outputs.available != 'true'
+        run: |
+          {
+            echo "### Integración y E2E omitidos"
+            echo ""
+            echo "El secret \`MONGODB_URI\` no está configurado en **Settings → Secrets and variables → Actions**."
+            echo ""
+            echo "**Configuración rápida (local):**"
+            echo "\`\`\`powershell"
+            echo "npm run ci:setup-secret"
+            echo "\`\`\`"
+            echo ""
+            echo "**Requisitos Atlas:** Network Access con \`0.0.0.0/0\` (runners de GitHub) y usuario readWrite en \`restaurant-saas\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Seed demo data
+        if: steps.mongo.outputs.available == 'true'
+        run: npm run seed --workspace=@bistro/api
+
+      - name: Integration tests
+        if: steps.mongo.outputs.available == 'true'
+        run: npm run test:integration --workspace=@bistro/api
+
+      - name: E2E tests
+        if: steps.mongo.outputs.available == 'true'
+        run: |
+          npm run test:e2e:install
+          npm run test:e2e
+
+      - name: Resumen job integration-e2e
+        if: always() && steps.mongo.outputs.available == 'true'
+        run: |
+          {
+            echo "### Job \`integration-e2e\`"
+            echo "- Preflight Atlas"
+            echo "- Seed demo"
+            echo "- 23 tests de integración"
+            echo "- E2E: order-flow, onboarding-flow, platform-flow"
+          } >> "$GITHUB_STEP_SUMMARY"
