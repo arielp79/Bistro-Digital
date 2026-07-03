@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import type {
   ImpersonateResponse,
   PlatformTenantDetail,
+  PlatformTenantSoftDeleteResult,
   PlatformTenantSummary,
   TenantPlan,
 } from '@bistro/shared-types';
@@ -19,6 +20,8 @@ const PLAN_LABELS: Record<TenantPlan, string> = {
   pro: 'Pro',
   enterprise: 'Enterprise',
 };
+
+const DEMO_SLUG = 'bistro-digital';
 
 const SOURCE_LABELS: Record<string, string> = {
   qr: 'QR',
@@ -38,6 +41,7 @@ export function PlatformTenantDetailPage() {
   const [savingPlan, setSavingPlan] = useState(false);
   const [togglingStatus, setTogglingStatus] = useState(false);
   const [impersonating, setImpersonating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const loadDetail = useCallback(async () => {
     if (!tenantId) return;
@@ -109,6 +113,29 @@ export function PlatformTenantDetailPage() {
     }
   };
 
+  const softDeleteTenant = async () => {
+    if (!tenantId || !detail) return;
+    const confirmed = window.confirm(
+      `¿Eliminar "${detail.name}" (${detail.slug})?\n\n` +
+        'El restaurante dejará de ser accesible. Los datos se conservan (soft-delete).'
+    );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    setError('');
+    try {
+      await platformFetch<PlatformTenantSoftDeleteResult>(
+        `/api/v1/platform/tenants/${tenantId}`,
+        { method: 'DELETE' }
+      );
+      navigate('/platform');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Error');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-6">
@@ -160,6 +187,16 @@ export function PlatformTenantDetailPage() {
           >
             {detail.isActive ? 'Suspender' : 'Activar'}
           </button>
+          {detail.slug !== DEMO_SLUG && (
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={() => void softDeleteTenant()}
+              className="text-sm px-4 py-2 rounded-lg border border-red-300 text-red-800 hover:bg-red-50 disabled:opacity-50"
+            >
+              {deleting ? 'Eliminando...' : 'Eliminar'}
+            </button>
+          )}
         </div>
       </div>
 

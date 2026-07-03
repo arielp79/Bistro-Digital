@@ -170,6 +170,19 @@ export const cleanupE2eTenants = async (
   }
 };
 
+export const deleteTenant = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const result = await PlatformService.softDeleteTenant(req.params.tenantId);
+    res.json(apiSuccess(result));
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const listImpersonationLogs = async (
   req: Request,
   res: Response,

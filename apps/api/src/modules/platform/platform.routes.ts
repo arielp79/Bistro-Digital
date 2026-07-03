@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authMiddleware, requirePlatformAdmin } from '../../middlewares/auth.middleware.js';
 import {
   cleanupE2eTenants,
+  deleteTenant,
   endImpersonationLog,
   getMetrics,
   getTenantDetail,
@@ -22,6 +23,7 @@ const platformAuth = [authMiddleware, requirePlatformAdmin];
 router.get('/tenants', ...platformAuth, listTenants);
 router.delete('/tenants/e2e-cleanup', ...platformAuth, cleanupE2eTenants);
 router.get('/tenants/:tenantId', ...platformAuth, getTenantDetail);
+router.delete('/tenants/:tenantId', ...platformAuth, deleteTenant);
 router.post('/tenants/:tenantId/impersonate', ...platformAuth, impersonateTenant);
 router.patch('/tenants/:tenantId/status', ...platformAuth, updateTenantStatus);
 router.patch('/tenants/:tenantId/plan', ...platformAuth, updateTenantPlan);

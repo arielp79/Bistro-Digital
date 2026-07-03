@@ -148,6 +148,12 @@ export interface PlatformE2eCleanupResult {
   deletedSlugs: string[];
 }
 
+export interface PlatformTenantSoftDeleteResult {
+  id: string;
+  slug: string;
+  deletedAt: string;
+}
+
 export interface PlatformTenantAdminUser {
   id: string;
   email: string;

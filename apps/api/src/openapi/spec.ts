@@ -695,6 +695,19 @@ export function buildOpenApiSpec() {
         parameters: [{ $ref: '#/components/parameters/TenantId' }],
         responses: { '200': apiDataResponse(`${S}/PlatformTenantDetail`, 'PlatformTenantDetail') },
       },
+      delete: {
+        tags: ['Platform'],
+        summary: 'Eliminar restaurante (soft-delete)',
+        description:
+          'Marca el tenant y sus usuarios con deletedAt. No borra datos. El tenant demo bistro-digital está protegido.',
+        security: bearerSecurity,
+        parameters: [{ $ref: '#/components/parameters/TenantId' }],
+        responses: {
+          '200': apiDataResponse(`${S}/PlatformTenantSoftDeleteResult`, 'Tenant eliminado'),
+          '403': { description: 'Tenant protegido (demo)' },
+          '404': { description: 'Tenant no encontrado' },
+        },
+      },
     },
     '/api/v1/platform/tenants/{tenantId}/status': {
       patch: {

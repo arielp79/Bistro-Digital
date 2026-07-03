@@ -904,6 +904,16 @@ export const domainSchemas = {
     },
   },
 
+  PlatformTenantSoftDeleteResult: {
+    type: 'object',
+    required: ['id', 'slug', 'deletedAt'],
+    properties: {
+      id: { type: 'string' },
+      slug: { type: 'string' },
+      deletedAt: { type: 'string', format: 'date-time' },
+    },
+  },
+
   TenantStatusPatch: {
     type: 'object',
     required: ['isActive'],

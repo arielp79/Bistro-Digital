@@ -149,4 +149,73 @@ describe('API integración — platform super-admin', () => {
 
     expect(res.status).toBe(403);
   });
+
+  it('soft-delete de tenant oculta restaurante y bloquea acceso', async (ctx) => {
+    skipIfNoDb(ctx);
+    const token = await loginPlatform();
+    const slug = `soft-del-${Date.now()}`;
+    const email = `admin-${slug}@e2e.test`;
+
+    const registerRes = await request(app)
+      .post('/api/v1/onboarding/register')
+      .send({
+        restaurantName: `Soft Delete ${slug}`,
+        slug,
+        plan: 'starter',
+        adminName: 'Soft Del Admin',
+        adminEmail: email,
+        adminPassword: 'test123456',
+        includeStarterMenu: false,
+        tableCount: 1,
+      });
+
+    expect(registerRes.status).toBe(201);
+    const tenantId = registerRes.body.data.tenant.id as string;
+
+    const deleteRes = await request(app)
+      .delete(`/api/v1/platform/tenants/${tenantId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(deleteRes.status).toBe(200);
+    expect(deleteRes.body.data.slug).toBe(slug);
+    expect(deleteRes.body.data.deletedAt).toBeTruthy();
+
+    const listRes = await request(app)
+      .get(`/api/v1/platform/tenants?search=${slug}&includeInactive=true`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(listRes.status).toBe(200);
+    expect(listRes.body.data.some((t: { id: string }) => t.id === tenantId)).toBe(false);
+
+    const configRes = await request(app)
+      .get('/api/v1/tenant/config')
+      .set('X-Tenant-ID', slug);
+
+    expect(configRes.status).toBe(403);
+
+    const loginRes = await request(app)
+      .post('/api/v1/auth/login')
+      .set('X-Tenant-ID', slug)
+      .send({ email, password: 'test123456' });
+
+    expect(loginRes.status).toBe(403);
+  });
+
+  it('rechaza soft-delete del tenant demo bistro-digital', async (ctx) => {
+    skipIfNoDb(ctx);
+    const token = await loginPlatform();
+
+    const listRes = await request(app)
+      .get('/api/v1/platform/tenants?search=bistro-digital')
+      .set('Authorization', `Bearer ${token}`);
+
+    const tenantId = listRes.body.data[0]?.id as string;
+    expect(tenantId).toBeTruthy();
+
+    const deleteRes = await request(app)
+      .delete(`/api/v1/platform/tenants/${tenantId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(deleteRes.status).toBe(403);
+  });
 });

@@ -3,6 +3,7 @@ import type {
   PlatformE2eCleanupResult,
   PlatformMetrics,
   PlatformTenantDetail,
+  PlatformTenantSoftDeleteResult,
   PlatformTenantSummary,
   TenantPlan,
 } from '@bistro/shared-types';
@@ -19,6 +20,9 @@ import { Table } from '../tables/table.model.js';
 import { Tenant } from '../tenant/tenant.model.js';
 import { TenantService } from '../tenant/tenant.service.js';
 import { buildClientUrl } from '../../utils/tenant-host.js';
+
+/** Tenants que no pueden eliminarse desde el panel platform. */
+const PROTECTED_TENANT_SLUGS = new Set(['bistro-digital']);
 
 function startOfMonth(): Date {
   const d = new Date();
@@ -209,6 +213,31 @@ export class PlatformService {
 
     const [summary] = await buildSummariesForTenants([tenant]);
     return summary;
+  }
+
+  static async softDeleteTenant(tenantId: string): Promise<PlatformTenantSoftDeleteResult> {
+    const tenant = await Tenant.findOne({ _id: tenantId, deletedAt: null });
+    if (!tenant) {
+      throw new AppError('Tenant no encontrado', 404);
+    }
+    if (PROTECTED_TENANT_SLUGS.has(tenant.slug)) {
+      throw new AppError('No se puede eliminar el tenant de demostración', 403);
+    }
+
+    const deletedAt = new Date();
+    await Promise.all([
+      Tenant.updateOne({ _id: tenantId }, { $set: { deletedAt, isActive: false } }),
+      User.updateMany(
+        { tenantId: tenant._id, deletedAt: null },
+        { $set: { deletedAt, isActive: false, refreshTokens: [] } }
+      ),
+    ]);
+
+    return {
+      id: tenantId,
+      slug: tenant.slug,
+      deletedAt: deletedAt.toISOString(),
+    };
   }
 
   static async getMetrics(): Promise<PlatformMetrics> {
