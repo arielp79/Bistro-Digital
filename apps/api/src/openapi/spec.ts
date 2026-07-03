@@ -143,7 +143,10 @@ export function buildOpenApiSpec() {
         tags: ['Onboarding'],
         summary: 'Listar planes disponibles para alta',
         responses: {
-          '200': apiDataArrayResponse(`${S}/OnboardingPlanOption`, 'Planes starter/pro/enterprise'),
+          '200': apiDataResponse(
+            `${S}/OnboardingPlansResponse`,
+            'Planes starter/pro/enterprise con estado Stripe'
+          ),
         },
       },
     },
@@ -761,6 +764,42 @@ export function buildOpenApiSpec() {
       },
     },
 
+    // ── Suscripciones SaaS (Stripe) ────────────────────────────────────
+    '/api/v1/subscriptions/plans': {
+      get: {
+        tags: ['Suscripciones'],
+        summary: 'Planes SaaS con precios Stripe configurados',
+        responses: {
+          '200': apiDataResponse(`${S}/OnboardingPlansResponse`, 'Planes y checkout disponible'),
+        },
+      },
+    },
+    '/api/v1/subscriptions/checkout': {
+      post: {
+        tags: ['Suscripciones'],
+        summary: 'Crear sesión Stripe Checkout para upgrade de plan',
+        security: tenantBearerSecurity,
+        requestBody: requestBody(`${S}/SaasCheckoutRequest`),
+        responses: {
+          '200': apiDataResponse(`${S}/StripeCheckoutSession`, 'URL de checkout Stripe'),
+          '400': apiErrorResponse('Plan inválido', 'Starter no requiere pago'),
+          '503': apiErrorResponse('Stripe no configurado', 'Falta STRIPE_SECRET_KEY o price ID'),
+        },
+      },
+    },
+    '/api/v1/subscriptions/portal': {
+      post: {
+        tags: ['Suscripciones'],
+        summary: 'Portal de facturación Stripe del restaurante',
+        security: tenantBearerSecurity,
+        responses: {
+          '200': apiDataResponse(`${S}/StripePortalSession`, 'URL del customer portal'),
+          '400': apiErrorResponse('Sin suscripción', 'No hay stripeCustomerId'),
+          '503': apiErrorResponse('Stripe no configurado', 'Falta STRIPE_SECRET_KEY'),
+        },
+      },
+    },
+
     // ── Webhooks ───────────────────────────────────────────────────────
     '/api/v1/webhooks/whatsapp': {
       get: {
@@ -799,6 +838,18 @@ export function buildOpenApiSpec() {
         responses: { '200': { description: 'Procesado' } },
       },
     },
+    '/api/v1/webhooks/stripe': {
+      post: {
+        tags: ['Webhooks'],
+        summary: 'Eventos Stripe (suscripciones SaaS)',
+        description:
+          'Requiere body raw y header `Stripe-Signature`. Local: `stripe listen --forward-to localhost:3000/api/v1/webhooks/stripe`',
+        responses: {
+          '200': { description: 'Evento recibido (procesamiento async)' },
+          '400': apiErrorResponse('Firma inválida', 'Stripe-Signature ausente o incorrecta'),
+        },
+      },
+    },
   };
 
   return {
@@ -834,6 +885,7 @@ export function buildOpenApiSpec() {
       { name: 'Delivery' },
       { name: 'Pagos' },
       { name: 'Facturación' },
+      { name: 'Suscripciones' },
       { name: 'Platform' },
       { name: 'Webhooks' },
     ],

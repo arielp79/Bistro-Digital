@@ -20,6 +20,8 @@ describe('OpenAPI spec', () => {
     expect(paths).toContain('/api/v1/platform/tenants/{tenantId}/impersonate');
     expect(paths).toContain('/api/v1/platform/impersonation-logs');
     expect(paths).toContain('/api/v1/delivery/ops');
+    expect(paths).toContain('/api/v1/subscriptions/checkout');
+    expect(paths).toContain('/api/v1/webhooks/stripe');
     expect(paths).toContain('/health');
   });
 

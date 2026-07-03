@@ -230,6 +230,12 @@ export const createInvoiceSchema = z.object({
   invoiceType: z.enum(['B', 'C']).default('B'),
 });
 
+export const saasCheckoutSchema = z.object({
+  plan: z.enum(['pro', 'enterprise'], {
+    errorMap: () => ({ message: 'Plan debe ser pro o enterprise' }),
+  }),
+});
+
 export const simulateDeliverySchema = z.object({
   phone: z.string().min(8),
   message: z.string().min(1),

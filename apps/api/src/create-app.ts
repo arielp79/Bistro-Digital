@@ -19,6 +19,7 @@ import webhookRoutes from './modules/delivery/webhooks/webhook.routes.js';
 import paymentsRoutes from './modules/payments/payments.routes.js';
 import billingRoutes from './modules/billing/billing.routes.js';
 import onboardingRoutes from './modules/onboarding/onboarding.routes.js';
+import subscriptionsRoutes from './modules/subscriptions/subscriptions.routes.js';
 import platformRoutes from './modules/platform/platform.routes.js';
 import { setupApiDocs } from './openapi/setup-docs.js';
 
@@ -57,6 +58,7 @@ export function createApp() {
   app.use('/api/v1/payments', paymentsRoutes);
   app.use('/api/v1/billing', billingRoutes);
   app.use('/api/v1/onboarding', onboardingRoutes);
+  app.use('/api/v1/subscriptions', subscriptionsRoutes);
   app.use('/api/v1/platform', platformRoutes);
   app.use('/api/v1/webhooks', webhookRoutes);
 

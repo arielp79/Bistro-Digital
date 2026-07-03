@@ -74,4 +74,10 @@ export const env = {
   platformBaseDomain: process.env.PLATFORM_BASE_DOMAIN ?? 'saas-base.com',
   clientBaseUrl: process.env.CLIENT_BASE_URL ?? 'http://localhost:5173',
   platformCnameTarget: process.env.PLATFORM_CNAME_TARGET ?? 'proxy.saas-base.com',
+  webAdminUrl: process.env.WEB_ADMIN_URL ?? 'http://localhost:3001',
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? '',
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? '',
+  stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY ?? '',
+  stripePricePro: process.env.STRIPE_PRICE_PRO ?? '',
+  stripePriceEnterprise: process.env.STRIPE_PRICE_ENTERPRISE ?? '',
 };

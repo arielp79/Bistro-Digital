@@ -9,7 +9,21 @@ export interface InvoiceTemplateData {
   caeExpiry: Date;
   voucherNumber: number;
   pointOfSale: number;
-  mode: 'production' | 'demo';
+  mode: 'production' | 'homologacion' | 'demo';
+}
+
+function invoiceModeBanner(mode: InvoiceTemplateData['mode']): string {
+  if (mode === 'demo') {
+    return `<div style="background:#E8C468;color:#1A1A2E;text-align:center;padding:8px;font-weight:bold;">
+           DEMO — Comprobante sin validez fiscal (AFIP deshabilitado)
+         </div>`;
+  }
+  if (mode === 'homologacion') {
+    return `<div style="background:#93c5fd;color:#1e3a5f;text-align:center;padding:8px;font-weight:bold;">
+           HOMOLOGACION AFIP — Comprobante de prueba (sin validez fiscal en produccion)
+         </div>`;
+  }
+  return '';
 }
 
 function formatMoney(amount: number): string {
@@ -25,12 +39,7 @@ export function renderInvoiceHtml(data: InvoiceTemplateData): string {
   const netAmount = order.total / 1.21;
   const ivaAmount = order.total - netAmount;
   const typeLabel = invoiceType === 'B' ? 'Factura B' : 'Factura C';
-  const demoBanner =
-    mode === 'demo'
-      ? `<div style="background:#E8C468;color:#1A1A2E;text-align:center;padding:8px;font-weight:bold;">
-           DEMO — Comprobante sin validez fiscal (AFIP deshabilitado)
-         </div>`
-      : '';
+  const demoBanner = invoiceModeBanner(mode);
 
   const itemRows = order.items
     .map(

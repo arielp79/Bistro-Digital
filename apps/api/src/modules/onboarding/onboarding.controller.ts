@@ -5,6 +5,10 @@ import { env } from '../../config/env.js';
 import { OnboardingService } from './onboarding.service.js';
 import { slugifyName } from '../../data/starter-tenant.data.js';
 import { ONBOARDING_PLANS } from '../../data/onboarding-plans.data.js';
+import {
+  StripeSaasService,
+  isStripeSaasConfigured,
+} from '../subscriptions/stripe-saas.service.js';
 
 export const listPlans = async (
   _req: Request,
@@ -12,7 +16,15 @@ export const listPlans = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    res.json(apiSuccess(ONBOARDING_PLANS));
+    const plans = ONBOARDING_PLANS.map((plan) => ({
+      ...plan,
+      billing: {
+        requiresPayment: plan.id !== 'starter',
+        checkoutAvailable:
+          plan.id !== 'starter' && Boolean(StripeSaasService.resolvePriceIdForPlan(plan.id)),
+      },
+    }));
+    res.json(apiSuccess({ stripeConfigured: isStripeSaasConfigured(), plans }));
   } catch (error) {
     next(error);
   }

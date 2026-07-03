@@ -12,6 +12,12 @@ export const errorHandler = (
     return;
   }
 
+  const stripeErr = err as Error & { type?: string };
+  if (stripeErr.type?.startsWith('Stripe')) {
+    res.status(400).json(apiError(stripeErr.message));
+    return;
+  }
+
   console.error('[Error]', err);
   res.status(500).json(apiError('Error interno del servidor'));
 };

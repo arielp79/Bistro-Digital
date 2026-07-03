@@ -4,10 +4,11 @@ import type {
   OnboardingPlanOption,
   OnboardingRegisterResponse,
   SlugAvailability,
+  StripeCheckoutSession,
   TenantPlan,
 } from '@bistro/shared-types';
 import { CopyField } from '../components/CopyField';
-import { publicFetch } from '../lib/api';
+import { apiFetch, publicFetch } from '../lib/api';
 import { useAuthStore } from '../stores/auth.store';
 
 const STEPS = ['Restaurante', 'Marca', 'Plan', 'Administrador', 'Contenido inicial', 'Listo'] as const;
@@ -56,8 +57,10 @@ export function OnboardingPage() {
   const [result, setResult] = useState<OnboardingRegisterResponse | null>(null);
 
   useEffect(() => {
-    publicFetch<OnboardingPlanOption[]>('/api/v1/onboarding/plans')
-      .then(setPlans)
+    publicFetch<{ stripeConfigured: boolean; plans: OnboardingPlanOption[] }>(
+      '/api/v1/onboarding/plans'
+    )
+      .then((data) => setPlans(data.plans))
       .catch(() => {
         /* fallback mínimo si la API no responde */
         setPlans([
@@ -150,6 +153,23 @@ export function OnboardingPage() {
       setError(err instanceof Error ? err.message : 'Error al crear el restaurante');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+
+  const startCheckout = async (plan: TenantPlan) => {
+    setCheckoutLoading(true);
+    setError('');
+    try {
+      const session = await apiFetch<StripeCheckoutSession>('/api/v1/subscriptions/checkout', {
+        method: 'POST',
+        body: JSON.stringify({ plan }),
+      });
+      window.location.href = session.url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo iniciar el pago');
+      setCheckoutLoading(false);
     }
   };
 
@@ -412,7 +432,10 @@ export function OnboardingPage() {
               <p className="text-sm text-primary/60">
                 Identificador: <strong className="font-mono">{result.tenant.slug}</strong>
                 {' · '}
-                Plan: <strong>{result.tenant.plan}</strong>
+                Plan: <strong>{result.billing.requestedPlan}</strong>
+                {result.billing.checkoutRequired && (
+                  <span className="text-amber-700"> (pago pendiente)</span>
+                )}
               </p>
               {result.welcomeEmail.sent ? (
                 <p className="text-sm text-green-700">
@@ -424,6 +447,22 @@ export function OnboardingPage() {
                 </p>
               )}
               <CopyField label="Menú QR (mesa 1)" value={result.urls.clientMenu} />
+              {result.billing.checkoutRequired && result.billing.checkoutPlan && (
+                <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-950 text-left">
+                  <p className="font-medium">Completá el pago del plan {result.billing.checkoutPlan}</p>
+                  <p className="mt-1 text-amber-900/80">
+                    Hasta confirmar el pago en Stripe, tu cuenta opera con plan Starter.
+                  </p>
+                  <button
+                    type="button"
+                    disabled={checkoutLoading}
+                    onClick={() => void startCheckout(result.billing.checkoutPlan!)}
+                    className="mt-3 w-full py-2.5 bg-primary text-white font-semibold rounded-xl disabled:opacity-50"
+                  >
+                    {checkoutLoading ? 'Redirigiendo a Stripe...' : 'Pagar con Stripe'}
+                  </button>
+                </div>
+              )}
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <button
                   type="button"

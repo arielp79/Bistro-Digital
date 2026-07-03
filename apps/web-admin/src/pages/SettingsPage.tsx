@@ -1,9 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import type { TenantAdminSettings } from '@bistro/shared-types';
+import { Link, useSearchParams } from 'react-router-dom';
+import type { StripeCheckoutSession, TenantAdminSettings, TenantPlan } from '@bistro/shared-types';
 import { apiFetch } from '../lib/api';
 
+const PLAN_LABELS: Record<TenantPlan, string> = {
+  starter: 'Starter',
+  pro: 'Pro',
+  enterprise: 'Enterprise',
+};
+
 export function SettingsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const billingNotice = searchParams.get('billing');
   const [settings, setSettings] = useState<TenantAdminSettings | null>(null);
   const [name, setName] = useState('');
   const [primaryColor, setPrimaryColor] = useState('#1A1A2E');
@@ -19,8 +27,9 @@ export function SettingsPage() {
   const [customDomain, setCustomDomain] = useState('');
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const [billingLoading, setBillingLoading] = useState<'pro' | 'enterprise' | 'portal' | null>(null);
 
-  useEffect(() => {
+  const loadSettings = () => {
     apiFetch<TenantAdminSettings>('/api/v1/tenant/settings')
       .then((s) => {
         setSettings(s);
@@ -32,7 +41,47 @@ export function SettingsPage() {
         setCustomDomain(s.domainSettings.isCustomDomain ? s.domainSettings.domain : '');
       })
       .catch((e) => setError(e.message));
+  };
+
+  useEffect(() => {
+    loadSettings();
   }, []);
+
+  useEffect(() => {
+    if (billingNotice === 'success' || billingNotice === 'cancel') {
+      loadSettings();
+    }
+  }, [billingNotice]);
+
+  const startCheckout = async (plan: 'pro' | 'enterprise') => {
+    setBillingLoading(plan);
+    setError('');
+    try {
+      const session = await apiFetch<StripeCheckoutSession>('/api/v1/subscriptions/checkout', {
+        method: 'POST',
+        body: JSON.stringify({ plan }),
+      });
+      window.location.href = session.url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo iniciar el pago');
+      setBillingLoading(null);
+    }
+  };
+
+  const openPortal = async () => {
+    setBillingLoading('portal');
+    setError('');
+    try {
+      const session = await apiFetch<{ url: string }>('/api/v1/subscriptions/portal', {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      window.location.href = session.url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo abrir el portal de Stripe');
+      setBillingLoading(null);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,6 +120,88 @@ export function SettingsPage() {
       <h1 className="text-2xl font-bold mb-6">Configuración</h1>
       {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
       {saved && <p className="text-green-600 text-sm mb-4">Configuración guardada</p>}
+      {billingNotice === 'success' && (
+        <p className="text-green-600 text-sm mb-4">
+          Pago recibido. Tu plan se actualizará en unos segundos (webhook Stripe).
+          <button
+            type="button"
+            className="ml-2 underline"
+            onClick={() => setSearchParams({})}
+          >
+            Cerrar
+          </button>
+        </p>
+      )}
+      {billingNotice === 'cancel' && (
+        <p className="text-amber-700 text-sm mb-4">
+          Pago cancelado en Stripe.
+          <button
+            type="button"
+            className="ml-2 underline"
+            onClick={() => setSearchParams({})}
+          >
+            Cerrar
+          </button>
+        </p>
+      )}
+
+      {settings?.saasBilling && (
+        <section className="mb-6 rounded-xl bg-surface border border-primary/10 p-6 space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h2 className="font-semibold">Plan SaaS</h2>
+              <p className="text-sm text-primary/60 mt-1">
+                Plan actual: <strong>{PLAN_LABELS[settings.saasBilling.plan]}</strong>
+                {settings.saasBilling.subscriptionStatus && (
+                  <span className="text-primary/40">
+                    {' '}
+                    · Stripe: {settings.saasBilling.subscriptionStatus}
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+          {!settings.saasBilling.stripeConfigured && (
+            <p className="text-xs text-primary/50">
+              Stripe no está configurado en el servidor (STRIPE_SECRET_KEY).
+            </p>
+          )}
+          {settings.saasBilling.stripeConfigured && (
+            <div className="flex flex-wrap gap-2">
+              {settings.saasBilling.plan !== 'pro' && (
+                <button
+                  type="button"
+                  disabled={billingLoading !== null}
+                  onClick={() => void startCheckout('pro')}
+                  className="px-4 py-2 text-sm rounded-xl bg-primary text-white disabled:opacity-50"
+                >
+                  {billingLoading === 'pro' ? 'Redirigiendo...' : 'Upgrade a Pro'}
+                </button>
+              )}
+              {settings.saasBilling.plan !== 'enterprise' && (
+                <button
+                  type="button"
+                  disabled={billingLoading !== null}
+                  onClick={() => void startCheckout('enterprise')}
+                  className="px-4 py-2 text-sm rounded-xl border border-primary/10 disabled:opacity-50"
+                >
+                  {billingLoading === 'enterprise' ? 'Redirigiendo...' : 'Upgrade a Enterprise'}
+                </button>
+              )}
+              {settings.saasBilling.canManagePortal && (
+                <button
+                  type="button"
+                  disabled={billingLoading !== null}
+                  onClick={() => void openPortal()}
+                  className="px-4 py-2 text-sm rounded-xl border border-primary/10 disabled:opacity-50"
+                >
+                  {billingLoading === 'portal' ? 'Abriendo...' : 'Gestionar suscripción'}
+                </button>
+              )}
+            </div>
+          )}
+        </section>
+      )}
 
       <div className="mb-6 rounded-xl bg-primary/5 border border-primary/10 p-4 text-sm">
         <p className="font-medium">WhatsApp e Instagram</p>

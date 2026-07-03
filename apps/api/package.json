@@ -14,7 +14,8 @@
     "test:watch": "vitest",
     "audit:orders": "node scripts/audit-orders.mjs",
     "openapi:export": "tsx scripts/export-openapi.ts",
-    "gemini:test": "node scripts/test-gemini.mjs"
+    "gemini:test": "node scripts/test-gemini.mjs",
+    "afip:homologacion": "node scripts/afip-homologacion.mjs"
   },
   "dependencies": {
     "@afipsdk/afip.js": "^1.2.3",
@@ -34,6 +35,7 @@
     "mongoose": "^8.9.3",
     "openai": "^4.77.0",
     "socket.io": "^4.8.1",
+    "stripe": "^22.3.0",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {

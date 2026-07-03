@@ -20,8 +20,8 @@ describe('API integración — onboarding ampliado', () => {
     skipIfNoDb(ctx);
     const res = await request(app).get('/api/v1/onboarding/plans');
     expect(res.status).toBe(200);
-    expect(res.body.data.length).toBe(3);
-    expect(res.body.data.map((p: { id: string }) => p.id)).toContain('starter');
+    expect(res.body.data.plans.length).toBe(3);
+    expect(res.body.data.plans.map((p: { id: string }) => p.id)).toContain('starter');
   });
 
   it('POST /onboarding/register asigna plan y envía welcome email (console)', async (ctx) => {
@@ -42,6 +42,8 @@ describe('API integración — onboarding ampliado', () => {
     expect(res.status).toBe(201);
     expect(res.body.data.tenant.slug).toBe(testSlug);
     expect(res.body.data.tenant.plan).toBe('pro');
+    expect(res.body.data.billing.requestedPlan).toBe('pro');
+    expect(res.body.data.billing.checkoutRequired).toBe(false);
     expect(res.body.data.welcomeEmail.sent).toBe(true);
     expect(res.body.data.welcomeEmail.mode).toBe('console');
     expect(res.body.data.urls.login).toContain('login');

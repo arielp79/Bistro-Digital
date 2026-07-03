@@ -257,8 +257,19 @@ export const domainSchemas = {
       { $ref: '#/components/schemas/TenantConfigPublic' },
       {
         type: 'object',
-        required: ['domainSettings', 'integrations', 'webhooks', 'metaStatus', 'afip', 'pilotStatus'],
+        required: [
+          'plan',
+          'saasBilling',
+          'domainSettings',
+          'integrations',
+          'webhooks',
+          'metaStatus',
+          'afip',
+          'pilotStatus',
+        ],
         properties: {
+          plan: { $ref: '#/components/schemas/TenantPlan' },
+          saasBilling: { $ref: '#/components/schemas/SaasBillingStatus' },
           domainSettings: { $ref: '#/components/schemas/TenantDomainSettings' },
           integrations: {
             type: 'object',
@@ -318,6 +329,15 @@ export const domainSchemas = {
     },
   },
 
+  OnboardingPlanBilling: {
+    type: 'object',
+    required: ['requiresPayment', 'checkoutAvailable'],
+    properties: {
+      requiresPayment: { type: 'boolean' },
+      checkoutAvailable: { type: 'boolean' },
+    },
+  },
+
   OnboardingPlanOption: {
     type: 'object',
     required: ['id', 'name', 'description', 'priceLabel', 'features'],
@@ -328,6 +348,75 @@ export const domainSchemas = {
       priceLabel: { type: 'string' },
       features: { type: 'array', items: { type: 'string' } },
       recommended: { type: 'boolean' },
+      billing: { $ref: '#/components/schemas/OnboardingPlanBilling' },
+    },
+  },
+
+  OnboardingPlansResponse: {
+    type: 'object',
+    required: ['stripeConfigured', 'plans'],
+    properties: {
+      stripeConfigured: { type: 'boolean' },
+      plans: {
+        type: 'array',
+        items: { $ref: '#/components/schemas/OnboardingPlanOption' },
+      },
+    },
+  },
+
+  OnboardingRegisterBilling: {
+    type: 'object',
+    required: ['requestedPlan', 'checkoutRequired'],
+    properties: {
+      requestedPlan: { $ref: '#/components/schemas/TenantPlan' },
+      checkoutRequired: { type: 'boolean' },
+    },
+  },
+
+  SaasBillingStatus: {
+    type: 'object',
+    required: [
+      'plan',
+      'stripeConfigured',
+      'subscriptionStatus',
+      'subscriptionActive',
+      'canCheckout',
+      'canManagePortal',
+      'publishableKey',
+    ],
+    properties: {
+      plan: { $ref: '#/components/schemas/TenantPlan' },
+      stripeConfigured: { type: 'boolean' },
+      subscriptionStatus: { type: 'string', nullable: true },
+      subscriptionActive: { type: 'boolean' },
+      canCheckout: { type: 'boolean' },
+      canManagePortal: { type: 'boolean' },
+      publishableKey: { type: 'string', nullable: true },
+    },
+  },
+
+  StripeCheckoutSession: {
+    type: 'object',
+    required: ['url', 'sessionId'],
+    properties: {
+      url: { type: 'string', format: 'uri' },
+      sessionId: { type: 'string' },
+    },
+  },
+
+  SaasCheckoutRequest: {
+    type: 'object',
+    required: ['plan'],
+    properties: {
+      plan: { type: 'string', enum: ['pro', 'enterprise'] },
+    },
+  },
+
+  StripePortalSession: {
+    type: 'object',
+    required: ['url'],
+    properties: {
+      url: { type: 'string', format: 'uri' },
     },
   },
 
@@ -342,7 +431,7 @@ export const domainSchemas = {
 
   OnboardingRegisterResponse: {
     type: 'object',
-    required: ['tenant', 'user', 'tokens', 'welcomeEmail', 'urls'],
+    required: ['tenant', 'user', 'tokens', 'welcomeEmail', 'urls', 'billing'],
     properties: {
       tenant: {
         type: 'object',
@@ -353,6 +442,7 @@ export const domainSchemas = {
           plan: { $ref: '#/components/schemas/TenantPlan' },
         },
       },
+      billing: { $ref: '#/components/schemas/OnboardingRegisterBilling' },
       user: { $ref: '#/components/schemas/AuthUser' },
       tokens: { $ref: '#/components/schemas/AuthTokens' },
       welcomeEmail: { $ref: '#/components/schemas/OnboardingWelcomeEmailStatus' },
@@ -726,7 +816,7 @@ export const domainSchemas = {
       caeExpiry: { type: 'string' },
       voucherNumber: { type: 'integer' },
       pointOfSale: { type: 'integer' },
-      mode: { type: 'string', enum: ['production', 'demo'] },
+      mode: { type: 'string', enum: ['production', 'homologacion', 'demo'] },
       pdfUrl: { type: 'string', format: 'uri' },
     },
   },

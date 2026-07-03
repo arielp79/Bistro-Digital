@@ -140,14 +140,14 @@ export class BillingService {
     let cae: string;
     let caeExpiry: Date;
     let voucherNumber: number;
-    let mode: 'production' | 'demo';
+    let mode: 'production' | 'homologacion' | 'demo';
 
     if (tenant.config.afip.enabled && tenant.config.afip.cuit && tenant.config.afip.certificate && tenant.config.afip.privateKey) {
       const result = await BillingService.emitAfipVoucher(tenant, order, invoiceType, pointOfSale, useProduction);
       cae = result.cae;
       caeExpiry = result.caeExpiry;
       voucherNumber = result.voucherNumber;
-      mode = useProduction ? 'production' : 'demo';
+      mode = useProduction ? 'production' : 'homologacion';
     } else if (tenant.config.afip.enabled) {
       throw new AppError(
         'AFIP habilitado pero faltan CUIT, certificado o clave privada en configuración',

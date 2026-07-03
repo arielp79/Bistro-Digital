@@ -7,6 +7,9 @@ export interface ITenant extends Document {
   domain: string;
   isActive: boolean;
   plan: TenantPlan;
+  stripeCustomerId: string;
+  stripeSubscriptionId: string;
+  stripeSubscriptionStatus: string;
   config: {
     branding: {
       logoUrl: string;
@@ -62,6 +65,9 @@ const tenantSchema = new Schema<ITenant>(
     domain: { type: String, required: true },
     isActive: { type: Boolean, default: true },
     plan: { type: String, enum: ['starter', 'pro', 'enterprise'], default: 'starter' },
+    stripeCustomerId: { type: String, default: '' },
+    stripeSubscriptionId: { type: String, default: '' },
+    stripeSubscriptionStatus: { type: String, default: '' },
     config: {
       branding: {
         logoUrl: { type: String, default: '' },

@@ -134,6 +134,11 @@ export function BillingPage() {
                             Demo
                           </span>
                         )}
+                        {order.billing.mode === 'homologacion' && (
+                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                            Homologación
+                          </span>
+                        )}
                       </span>
                     ) : (
                       <span className="text-primary/40">Sin facturar</span>

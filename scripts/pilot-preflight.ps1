@@ -52,6 +52,11 @@ $checks = @(
     Ok = [bool]$vars['ENCRYPTION_KEY'] -and $vars['ENCRYPTION_KEY'].Length -ge 64
     Hint = '32 bytes hex - cifra tokens de Meta/AFIP en MongoDB'
   }
+  @{
+    Name = 'STRIPE_SECRET_KEY (billing SaaS, opcional)'
+    Ok = $vars['STRIPE_SECRET_KEY'] -match '^sk_(test|live)_'
+    Hint = 'npm run stripe:preflight para checkout de planes Pro/Enterprise'
+  }
 )
 
 $requiredOk = $true

@@ -479,6 +479,8 @@ export interface UserPublic {
 
 export type InvoiceType = 'B' | 'C';
 
+export type InvoiceMode = 'production' | 'homologacion' | 'demo';
+
 export interface OrderBillingPublic {
   invoiceType: InvoiceType;
   cae: string;
@@ -486,7 +488,7 @@ export interface OrderBillingPublic {
   voucherNumber: number;
   pointOfSale: number;
   pdfUrl: string;
-  mode: 'production' | 'demo';
+  mode: InvoiceMode;
   issuedAt: string;
 }
 
@@ -498,7 +500,7 @@ export interface InvoicePublic {
   caeExpiry: string;
   voucherNumber: number;
   pointOfSale: number;
-  mode: 'production' | 'demo';
+  mode: InvoiceMode;
   pdfUrl: string;
 }
 
@@ -563,7 +565,24 @@ export interface MetaIntegrationStatus {
   deliveryReady: boolean;
 }
 
+export interface SaasBillingStatus {
+  plan: TenantPlan;
+  stripeConfigured: boolean;
+  subscriptionStatus: string | null;
+  subscriptionActive: boolean;
+  canCheckout: boolean;
+  canManagePortal: boolean;
+  publishableKey: string | null;
+}
+
+export interface StripeCheckoutSession {
+  url: string;
+  sessionId: string;
+}
+
 export interface TenantAdminSettings extends TenantConfigPublic {
+  plan: TenantPlan;
+  saasBilling: SaasBillingStatus;
   domainSettings: TenantDomainSettings;
   integrations: {
     mercadopagoConfigured: boolean;
@@ -696,6 +715,10 @@ export interface OnboardingPlanOption {
   priceLabel: string;
   features: string[];
   recommended?: boolean;
+  billing?: {
+    requiresPayment: boolean;
+    checkoutAvailable: boolean;
+  };
 }
 
 export interface OnboardingWelcomeEmailStatus {
@@ -710,6 +733,11 @@ export interface OnboardingRegisterResponse {
     slug: string;
     name: string;
     plan: TenantPlan;
+  };
+  billing: {
+    requestedPlan: TenantPlan;
+    checkoutRequired: boolean;
+    checkoutPlan?: TenantPlan;
   };
   user: LoginResponse['user'];
   tokens: AuthTokens;

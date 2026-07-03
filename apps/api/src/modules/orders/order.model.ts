@@ -48,7 +48,7 @@ export interface IOrder extends Document {
     pdfUrl: string | null;
     voucherNumber: number | null;
     pointOfSale: number | null;
-    mode: 'production' | 'demo' | null;
+    mode: 'production' | 'homologacion' | 'demo' | null;
     issuedAt: Date | null;
   };
   timestamps: {
@@ -126,7 +126,7 @@ const orderSchema = new Schema<IOrder>(
       pdfUrl: { type: String, default: null },
       voucherNumber: { type: Number, default: null },
       pointOfSale: { type: Number, default: null },
-      mode: { type: String, enum: ['production', 'demo', null], default: null },
+      mode: { type: String, enum: ['production', 'homologacion', 'demo', null], default: null },
       issuedAt: { type: Date, default: null },
     },
     timestamps: {

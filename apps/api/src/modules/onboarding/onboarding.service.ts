@@ -20,6 +20,7 @@ import {
 } from '../../data/starter-tenant.data.js';
 import { isOnboardingPlan } from '../../data/onboarding-plans.data.js';
 import { EmailService } from '../../services/email.service.js';
+import { resolvePriceIdForPlan } from '../subscriptions/stripe-saas.service.js';
 
 export class OnboardingService {
   static normalizeSlug(raw: string): string {
@@ -48,10 +49,14 @@ export class OnboardingService {
     }
 
     const slug = slugCheck.slug;
-    const plan = input.plan ?? 'starter';
-    if (!isOnboardingPlan(plan)) {
+    const requestedPlan = input.plan ?? 'starter';
+    if (!isOnboardingPlan(requestedPlan)) {
       throw new AppError('Plan inválido', 400);
     }
+
+    const checkoutRequired =
+      requestedPlan !== 'starter' && Boolean(resolvePriceIdForPlan(requestedPlan));
+    const plan = checkoutRequired ? 'starter' : requestedPlan;
 
     const clientWebUrl = env.corsOrigin[0] ?? 'http://localhost:5173';
     const adminBase = env.corsOrigin.find((o) => o.includes('3001')) ?? 'http://localhost:3001';
@@ -145,7 +150,7 @@ export class OnboardingService {
       user.refreshTokens.push({ token: refreshToken, expiresAt, device: 'onboarding' });
       await user.save();
 
-      console.log(`[Onboarding] Tenant creado: ${slug} (${tenant._id}) plan=${plan}`);
+      console.log(`[Onboarding] Tenant creado: ${slug} (${tenant._id}) plan=${plan}${checkoutRequired ? ` (checkout pendiente: ${requestedPlan})` : ''}`);
 
       const adminUrl = `${adminBase.replace(/\/$/, '')}/`;
       const clientMenu = firstTableId
@@ -170,6 +175,13 @@ export class OnboardingService {
           name: tenant.name,
           plan,
         },
+        billing: checkoutRequired
+          ? {
+              requestedPlan,
+              checkoutRequired: true,
+              checkoutPlan: requestedPlan,
+            }
+          : { requestedPlan, checkoutRequired: false },
         user: {
           id: user._id.toString(),
           email: user.email,

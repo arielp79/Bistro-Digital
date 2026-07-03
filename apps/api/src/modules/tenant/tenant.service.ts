@@ -5,6 +5,8 @@ import type {
   TenantDomainSettings,
   MetaIntegrationStatus,
   TenantWebhookInfo,
+  SaasBillingStatus,
+  TenantPlan,
 } from '@bistro/shared-types';
 import type { Request } from 'express';
 import { encrypt } from '../../utils/encryption.js';
@@ -22,6 +24,7 @@ import {
 } from '../../utils/tenant-host.js';
 import { Tenant, type ITenant } from './tenant.model.js';
 import { WhatsAppService, InstagramService } from '../delivery/messaging/whatsapp.service.js';
+import { isStripeSaasConfigured } from '../subscriptions/stripe-saas.service.js';
 
 export class TenantService {
   static async findById(id: string): Promise<ITenant | null> {
@@ -164,9 +167,24 @@ export class TenantService {
     };
   }
 
+  static buildSaasBilling(tenant: ITenant): SaasBillingStatus {
+    const subscriptionActive = ['active', 'trialing'].includes(tenant.stripeSubscriptionStatus);
+    return {
+      plan: tenant.plan as TenantPlan,
+      stripeConfigured: isStripeSaasConfigured(),
+      subscriptionStatus: tenant.stripeSubscriptionStatus || null,
+      subscriptionActive,
+      canCheckout: isStripeSaasConfigured(),
+      canManagePortal: Boolean(tenant.stripeCustomerId && tenant.stripeSubscriptionId),
+      publishableKey: env.stripePublishableKey || null,
+    };
+  }
+
   static toAdminSettings(tenant: ITenant): TenantAdminSettings {
     return {
       ...TenantService.toPublicConfig(tenant),
+      plan: tenant.plan as TenantPlan,
+      saasBilling: TenantService.buildSaasBilling(tenant),
       domainSettings: TenantService.buildDomainSettings(tenant),
       integrations: {
         mercadopagoConfigured: Boolean(tenant.config.mercadopago?.accessToken),
