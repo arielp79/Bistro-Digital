@@ -9,6 +9,7 @@ export function OrdersPage() {
   const error = useOrderStore((s) => s.error);
   const fetchOrders = useOrderStore((s) => s.fetchOrders);
   const advanceOrder = useOrderStore((s) => s.advanceOrder);
+  const cancelOrder = useOrderStore((s) => s.cancelOrder);
   const { connected } = useOrdersSocket();
 
   useEffect(() => {
@@ -57,6 +58,7 @@ export function OrdersPage() {
             color={col.color}
             orders={orders}
             onAdvance={advanceOrder}
+            onCancel={cancelOrder}
           />
         ))}
       </div>

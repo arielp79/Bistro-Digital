@@ -5,6 +5,7 @@ interface OrderCardProps {
   order: OrderPublic;
   onAdvance: (orderId: string) => void;
   advancing: boolean;
+  advanceError?: string;
 }
 
 function timeAgo(iso: string): string {
@@ -23,7 +24,7 @@ const SOURCE_LABELS: Record<string, string> = {
   manual: 'Manual',
 };
 
-export function OrderCard({ order, onAdvance, advancing }: OrderCardProps) {
+export function OrderCard({ order, onAdvance, advancing, advanceError }: OrderCardProps) {
   const nextLabel = getNextStatusLabel(order.status);
   const location =
     order.tableLabel ?? (order.type === 'delivery' ? 'Delivery' : 'Sin mesa');
@@ -65,6 +66,12 @@ export function OrderCard({ order, onAdvance, advancing }: OrderCardProps) {
           </li>
         ))}
       </ul>
+
+      {advanceError && (
+        <p className="text-[11px] text-red-600 bg-red-50 border border-red-200 rounded-lg px-2 py-1.5 whitespace-pre-wrap">
+          {advanceError}
+        </p>
+      )}
 
       {nextLabel && !awaitingMp && (
         <button

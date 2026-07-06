@@ -11,6 +11,7 @@ interface OrderState {
   fetchOrders: () => Promise<void>;
   upsertOrder: (order: OrderPublic) => void;
   advanceOrder: (orderId: string) => Promise<void>;
+  cancelOrder: (orderId: string) => Promise<void>;
 }
 
 const NEXT_STATUS: Partial<Record<OrderStatus, OrderStatus>> = {
@@ -72,6 +73,15 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       body: JSON.stringify({ status: next }),
     });
     get().upsertOrder(updated);
+  },
+
+  cancelOrder: async (orderId) => {
+    const updated = await apiFetch<OrderPublic>(`/api/v1/orders/${orderId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status: 'cancelled' }),
+    });
+    get().upsertOrder(updated);
+    set({ error: null });
   },
 }));
 

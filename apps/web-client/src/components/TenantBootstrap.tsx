@@ -28,7 +28,7 @@ export function TenantBootstrap({ children }: { children: React.ReactNode }) {
     if (shouldResolveCustomDomain(window.location.hostname)) {
       void resolveFromHostname();
     }
-  }, [searchParams, setSlug, slug, resolveFromHostname]);
+  }, [searchParams, setSlug, slug, resolveFromHostname, location.search]);
 
   useEffect(() => {
     if (slug) void loadConfig();

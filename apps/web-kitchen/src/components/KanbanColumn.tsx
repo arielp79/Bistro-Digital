@@ -13,12 +13,21 @@ interface KanbanColumnProps {
 
 export function KanbanColumn({ status, label, color, orders, onAdvance }: KanbanColumnProps) {
   const [advancingId, setAdvancingId] = useState<string | null>(null);
+  const [advanceErrors, setAdvanceErrors] = useState<Record<string, string>>({});
   const columnOrders = getOrdersByStatus(orders, status);
 
   const handleAdvance = async (orderId: string) => {
     setAdvancingId(orderId);
+    setAdvanceErrors((prev) => {
+      const next = { ...prev };
+      delete next[orderId];
+      return next;
+    });
     try {
       await onAdvance(orderId);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al avanzar pedido';
+      setAdvanceErrors((prev) => ({ ...prev, [orderId]: message }));
     } finally {
       setAdvancingId(null);
     }
@@ -42,6 +51,7 @@ export function KanbanColumn({ status, label, color, orders, onAdvance }: Kanban
               order={order}
               onAdvance={handleAdvance}
               advancing={advancingId === order.id}
+              advanceError={advanceErrors[order.id]}
             />
           ))
         )}

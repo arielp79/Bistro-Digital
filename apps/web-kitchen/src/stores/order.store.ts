@@ -72,17 +72,26 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     if (!order) return;
 
     if (order.payment.method === 'mercadopago' && order.payment.status !== 'verified') {
-      throw new Error('Esperando confirmación de pago MercadoPago');
+      const message = 'Esperando confirmación de pago MercadoPago';
+      set({ error: message });
+      throw new Error(message);
     }
 
     const next = NEXT_STATUS[order.status];
     if (!next) return;
 
-    const updated = await apiFetch<OrderPublic>(`/api/v1/orders/${orderId}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status: next }),
-    });
-    get().upsertOrder(updated);
+    try {
+      const updated = await apiFetch<OrderPublic>(`/api/v1/orders/${orderId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: next }),
+      });
+      get().upsertOrder(updated);
+      set({ error: null });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al avanzar pedido';
+      set({ error: message });
+      throw err;
+    }
   },
 
   removeDelivered: (orderId) => {

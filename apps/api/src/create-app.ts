@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import { corsOptions } from './config/cors.js';
+import { env } from './config/env.js';
+import { apiError } from './utils/api-response.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import { captureRawBody } from './middlewares/webhook.middleware.js';
 import authRoutes from './modules/auth/auth.routes.js';
@@ -39,9 +41,12 @@ export function createApp() {
 
   const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 300,
+    max: env.nodeEnv === 'development' ? 10_000 : 300,
     standardHeaders: true,
     legacyHeaders: false,
+    handler: (_req, res) => {
+      res.status(429).json(apiError('Demasiadas solicitudes. Esperá un momento e intentá de nuevo.'));
+    },
   });
 
   app.use('/api', apiLimiter);

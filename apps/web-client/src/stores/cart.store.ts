@@ -23,6 +23,18 @@ function calcUnitPrice(menuItem: MenuItemPublic, modifiers: SelectedModifier[]):
   return menuItem.basePrice + modifiers.reduce((s, m) => s + m.priceAdjustment, 0);
 }
 
+/** HTTP en LAN (ej. 192.168.x.x) no es contexto seguro; randomUUID falla en móviles. */
+function newLineId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    try {
+      return crypto.randomUUID();
+    } catch {
+      // Safari iOS sobre HTTP
+    }
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
@@ -41,7 +53,7 @@ export const useCartStore = create<CartState>()(
 
         const unitPrice = calcUnitPrice(menuItem, selectedModifiers);
         const line: CartLineItem = {
-          lineId: crypto.randomUUID(),
+          lineId: newLineId(),
           menuItemId: menuItem.id,
           name: menuItem.name,
           quantity,

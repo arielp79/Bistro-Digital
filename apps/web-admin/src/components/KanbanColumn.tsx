@@ -8,10 +8,12 @@ interface KanbanColumnProps {
   color: string;
   orders: OrderPublic[];
   onAdvance: (orderId: string) => Promise<void>;
+  onCancel?: (orderId: string) => Promise<void>;
 }
 
-export function KanbanColumn({ status, label, color, orders, onAdvance }: KanbanColumnProps) {
+export function KanbanColumn({ status, label, color, orders, onAdvance, onCancel }: KanbanColumnProps) {
   const [advancingId, setAdvancingId] = useState<string | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
   const columnOrders = getOrdersByStatus(orders, status);
 
   const handleAdvance = async (orderId: string) => {
@@ -20,6 +22,16 @@ export function KanbanColumn({ status, label, color, orders, onAdvance }: Kanban
       await onAdvance(orderId);
     } finally {
       setAdvancingId(null);
+    }
+  };
+
+  const handleCancel = async (orderId: string) => {
+    if (!onCancel) return;
+    setCancellingId(orderId);
+    try {
+      await onCancel(orderId);
+    } finally {
+      setCancellingId(null);
     }
   };
 
@@ -40,7 +52,9 @@ export function KanbanColumn({ status, label, color, orders, onAdvance }: Kanban
               key={order.id}
               order={order}
               onAdvance={handleAdvance}
+              onCancel={onCancel ? handleCancel : undefined}
               advancing={advancingId === order.id}
+              cancelling={cancellingId === order.id}
             />
           ))
         )}

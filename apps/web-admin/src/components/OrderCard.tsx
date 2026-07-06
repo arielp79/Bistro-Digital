@@ -4,7 +4,9 @@ import { getNextStatusLabel } from '../stores/order.store';
 interface OrderCardProps {
   order: OrderPublic;
   onAdvance: (orderId: string) => void;
+  onCancel?: (orderId: string) => void;
   advancing: boolean;
+  cancelling?: boolean;
 }
 
 function timeAgo(iso: string): string {
@@ -23,7 +25,7 @@ const SOURCE_LABELS: Record<string, string> = {
   manual: 'Manual',
 };
 
-export function OrderCard({ order, onAdvance, advancing }: OrderCardProps) {
+export function OrderCard({ order, onAdvance, onCancel, advancing, cancelling }: OrderCardProps) {
   const nextLabel = getNextStatusLabel(order.status);
   const location = order.tableLabel ?? (order.type === 'delivery' ? 'Delivery' : 'Sin mesa');
   const awaitingMp =
@@ -61,10 +63,25 @@ export function OrderCard({ order, onAdvance, advancing }: OrderCardProps) {
       {nextLabel && !awaitingMp && (
         <button
           onClick={() => onAdvance(order.id)}
-          disabled={advancing}
+          disabled={advancing || cancelling}
           className="w-full py-2 text-xs font-semibold bg-primary text-white rounded-lg hover:opacity-90 transition disabled:opacity-50"
         >
           {advancing ? '...' : `→ ${nextLabel}`}
+        </button>
+      )}
+
+      {onCancel && (
+        <button
+          type="button"
+          onClick={() => {
+            if (window.confirm(`¿Cancelar el pedido #${order.orderNumber}?`)) {
+              onCancel(order.id);
+            }
+          }}
+          disabled={advancing || cancelling}
+          className="w-full py-1.5 text-xs text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
+        >
+          {cancelling ? 'Cancelando...' : 'Cancelar pedido'}
         </button>
       )}
     </article>

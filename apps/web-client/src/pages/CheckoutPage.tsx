@@ -178,7 +178,13 @@ export function CheckoutPage() {
 
       );
 
-      const json = await res.json();
+      const raw = await res.text();
+      let json: { data?: ShippingCalculation; error?: string };
+      try {
+        json = JSON.parse(raw) as { data?: ShippingCalculation; error?: string };
+      } catch {
+        throw new Error(raw.trim().slice(0, 120) || 'Error del servidor');
+      }
 
       if (!res.ok || json.error) {
 

@@ -52,8 +52,9 @@ export const useTenantStore = create<TenantState>((set, get) => ({
   setSlug: (slug) => {
     const normalized = normalizeSlug(slug);
     if (!normalized) return;
+    const changed = get().slug !== normalized;
     sessionStorage.setItem(TENANT_STORAGE_KEY, normalized);
-    set({ slug: normalized, config: null, error: null });
+    set({ slug: normalized, config: changed ? null : get().config, error: null });
   },
 
   clearSlug: () => {
@@ -119,7 +120,7 @@ export const useTenantStore = create<TenantState>((set, get) => ({
       return;
     }
 
-    set({ loading: true, error: null });
+    set({ loading: true, error: null, config: null });
 
     try {
       const res = await fetch('/api/v1/tenant/config', {
