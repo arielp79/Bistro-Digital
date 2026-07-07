@@ -519,7 +519,10 @@ export function OnboardingPage() {
 
         <p className="text-center text-sm text-primary/50 mt-6">
           ¿Ya tenés cuenta?{' '}
-          <Link to="/login" className="text-primary underline underline-offset-2">
+          <Link
+            to={slug ? `/login?tenant=${encodeURIComponent(slug)}` : '/login'}
+            className="text-primary underline underline-offset-2"
+          >
             Iniciar sesión
           </Link>
         </p>

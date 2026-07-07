@@ -1,12 +1,18 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../stores/auth.store';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const login = useAuthStore((s) => s.login);
   const savedSlug = useAuthStore((s) => s.tenantSlug);
-  const [tenantSlug, setTenantSlug] = useState(savedSlug);
+  const tenantFromUrl = searchParams.get('tenant')?.trim().toLowerCase() ?? '';
+  const [tenantSlug, setTenantSlug] = useState(tenantFromUrl || savedSlug);
+
+  useEffect(() => {
+    if (tenantFromUrl) setTenantSlug(tenantFromUrl);
+  }, [tenantFromUrl]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -35,7 +41,7 @@ export function LoginPage() {
         <div className="text-center">
           <span className="text-3xl">⚙️</span>
           <h1 className="text-xl font-bold mt-2">Panel Admin</h1>
-          <p className="text-sm text-primary/50">Bistró Digital</p>
+          <p className="text-sm text-primary/50">Ingresá con el identificador de tu restaurante</p>
         </div>
         <div>
           <label className="text-sm text-primary/50">Identificador del restaurante</label>
