@@ -59,6 +59,7 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 
   clearSlug: () => {
     sessionStorage.removeItem(TENANT_STORAGE_KEY);
+    document.title = 'Bistró Digital';
     set({ slug: null, config: null, error: null });
   },
 
@@ -155,5 +156,7 @@ export const useTenantStore = create<TenantState>((set, get) => ({
       root.style.setProperty('--color-background', '#FAFAFA');
       root.style.setProperty('--color-surface', '#FFFFFF');
     }
+
+    document.title = config.name;
   },
 }));

@@ -1,6 +1,11 @@
+import { useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import type { TenantConfigPublic } from '@bistro/shared-types';
+import { apiFetch } from '../lib/api';
 import { useAuthStore } from '../stores/auth.store';
 import { ImpersonationBanner } from './ImpersonationBanner';
+
+const DEFAULT_ADMIN_TITLE = 'Admin — Bistró Digital';
 
 const nav = [
   { to: '/', label: 'Dashboard', icon: '📊' },
@@ -18,9 +23,32 @@ const nav = [
 export function AdminLayout() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const tenantSlug = useAuthStore((s) => s.tenantSlug);
+  const impersonation = useAuthStore((s) => s.impersonation);
   const isImpersonating = useAuthStore((s) => s.isImpersonating());
   const logout = useAuthStore((s) => s.logout);
   const exitImpersonation = useAuthStore((s) => s.exitImpersonation);
+
+  useEffect(() => {
+    if (impersonation) {
+      document.title = `Admin — ${impersonation.tenantName}`;
+      return;
+    }
+
+    let cancelled = false;
+    void apiFetch<TenantConfigPublic>('/api/v1/tenant/config')
+      .then((config) => {
+        if (!cancelled) document.title = `Admin — ${config.name}`;
+      })
+      .catch(() => {
+        if (!cancelled) document.title = DEFAULT_ADMIN_TITLE;
+      });
+
+    return () => {
+      cancelled = true;
+      document.title = DEFAULT_ADMIN_TITLE;
+    };
+  }, [impersonation, tenantSlug]);
 
   const handleExitImpersonation = async () => {
     await exitImpersonation();

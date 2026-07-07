@@ -1,9 +1,19 @@
+import { useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { usePlatformAuthStore } from '../stores/platform-auth.store';
+
+const PLATFORM_TITLE = 'Super-admin — Bistró Digital';
 
 export function PlatformLayout() {
   const user = usePlatformAuthStore((s) => s.user);
   const logout = usePlatformAuthStore((s) => s.logout);
+
+  useEffect(() => {
+    document.title = PLATFORM_TITLE;
+    return () => {
+      document.title = 'Admin — Bistró Digital';
+    };
+  }, []);
 
   return (
     <div className="min-h-screen flex">
