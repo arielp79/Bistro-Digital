@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import { saasCheckoutSchema } from '@bistro/validation-schemas';
+import { saasCheckoutSchema, saasConfirmCheckoutSchema } from '@bistro/validation-schemas';
 import { AppError, apiSuccess } from '../../utils/api-response.js';
 import { StripeSaasService, isStripeSaasConfigured } from './stripe-saas.service.js';
 import { ONBOARDING_PLANS } from '../../data/onboarding-plans.data.js';
@@ -48,6 +48,40 @@ export const createCheckout = async (
 
     const session = await StripeSaasService.createCheckoutSession(req.tenant, parsed.data.plan);
     res.json(apiSuccess(session));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const confirmCheckout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.tenant) throw new AppError('Tenant requerido', 400);
+
+    const parsed = saasConfirmCheckoutSchema.safeParse(req.body);
+    if (!parsed.success) {
+      throw new AppError(parsed.error.errors[0]?.message ?? 'Datos inválidos', 400);
+    }
+
+    const plan = await StripeSaasService.confirmCheckoutSession(req.tenant, parsed.data.sessionId);
+    res.json(apiSuccess({ plan }));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const syncSubscription = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.tenant) throw new AppError('Tenant requerido', 400);
+    const plan = await StripeSaasService.syncSubscriptionFromStripe(req.tenant);
+    res.json(apiSuccess({ plan }));
   } catch (error) {
     next(error);
   }

@@ -236,6 +236,10 @@ export const saasCheckoutSchema = z.object({
   }),
 });
 
+export const saasConfirmCheckoutSchema = z.object({
+  sessionId: z.string().min(1, 'sessionId requerido'),
+});
+
 export const simulateDeliverySchema = z.object({
   phone: z.string().min(8),
   message: z.string().min(1),

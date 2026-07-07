@@ -94,6 +94,10 @@ export const DeliverySession = mongoose.model<IDeliverySession>(
 );
 
 export class DeliverySessionService {
+  static async findById(sessionId: string): Promise<IDeliverySession | null> {
+    return DeliverySession.findById(sessionId);
+  }
+
   static async getOrCreate(
     tenantId: string,
     customerPhone: string,

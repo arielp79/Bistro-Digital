@@ -13,7 +13,7 @@ vi.mock('../config/env.js', () => ({
   },
 }));
 
-import { AiService } from '../services/ai.service.js';
+import { AiService, normalizeGeminiHistory } from '../services/ai.service.js';
 
 const menuItems: IMenuItem[] = [
   {
@@ -61,5 +61,15 @@ describe('AiService fallback (sin proveedor IA)', () => {
     expect(intent.intent).toBe('new_order');
     expect(intent.items.length).toBeGreaterThan(0);
     expect(intent.items[0]?.menuItemId).toBe(menuItems[0]!._id.toString());
+  });
+
+  it('normalizeGeminiHistory elimina mensajes model al inicio', () => {
+    const normalized = normalizeGeminiHistory([
+      { role: 'assistant', content: 'Hola', timestamp: new Date() },
+      { role: 'user', content: 'Quiero pedir', timestamp: new Date() },
+      { role: 'assistant', content: '¿Qué?', timestamp: new Date() },
+    ]);
+    expect(normalized[0]?.role).toBe('user');
+    expect(normalized).toHaveLength(2);
   });
 });

@@ -54,6 +54,15 @@ async function completeJsonWithOpenAI(
   return response.choices[0]?.message?.content ?? null;
 }
 
+/** Gemini exige que el historial empiece con un mensaje user, no model. */
+export function normalizeGeminiHistory(history: ConversationMessage[]): ConversationMessage[] {
+  let trimmed = history.slice(-12);
+  while (trimmed.length > 0 && trimmed[0]?.role === 'assistant') {
+    trimmed = trimmed.slice(1);
+  }
+  return trimmed;
+}
+
 async function completeJsonWithGemini(
   systemPrompt: string,
   userMessage: string,
@@ -72,7 +81,7 @@ async function completeJsonWithGemini(
   });
 
   const chat = model.startChat({
-    history: history.slice(-8).map((m) => ({
+    history: normalizeGeminiHistory(history).map((m) => ({
       role: m.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: m.content }],
     })),

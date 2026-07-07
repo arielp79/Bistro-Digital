@@ -12,6 +12,7 @@ const PLAN_LABELS: Record<TenantPlan, string> = {
 export function SettingsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const billingNotice = searchParams.get('billing');
+  const checkoutSessionId = searchParams.get('session_id');
   const [settings, setSettings] = useState<TenantAdminSettings | null>(null);
   const [name, setName] = useState('');
   const [primaryColor, setPrimaryColor] = useState('#1A1A2E');
@@ -27,7 +28,7 @@ export function SettingsPage() {
   const [customDomain, setCustomDomain] = useState('');
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
-  const [billingLoading, setBillingLoading] = useState<'pro' | 'enterprise' | 'portal' | null>(null);
+  const [billingLoading, setBillingLoading] = useState<'pro' | 'enterprise' | 'portal' | 'sync' | null>(null);
 
   const loadSettings = () => {
     apiFetch<TenantAdminSettings>('/api/v1/tenant/settings')
@@ -48,10 +49,21 @@ export function SettingsPage() {
   }, []);
 
   useEffect(() => {
+    if (billingNotice === 'success' && checkoutSessionId) {
+      setError('');
+      void apiFetch<{ plan: TenantPlan }>('/api/v1/subscriptions/confirm', {
+        method: 'POST',
+        body: JSON.stringify({ sessionId: checkoutSessionId }),
+      })
+        .then(() => loadSettings())
+        .catch((e) => setError(e instanceof Error ? e.message : 'No se pudo confirmar el pago'));
+      return;
+    }
+
     if (billingNotice === 'success' || billingNotice === 'cancel') {
       loadSettings();
     }
-  }, [billingNotice]);
+  }, [billingNotice, checkoutSessionId]);
 
   const startCheckout = async (plan: 'pro' | 'enterprise') => {
     setBillingLoading(plan);
@@ -64,6 +76,22 @@ export function SettingsPage() {
       window.location.href = session.url;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo iniciar el pago');
+      setBillingLoading(null);
+    }
+  };
+
+  const syncBilling = async () => {
+    setBillingLoading('sync');
+    setError('');
+    try {
+      await apiFetch<{ plan: TenantPlan }>('/api/v1/subscriptions/sync', {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      loadSettings();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo sincronizar con Stripe');
+    } finally {
       setBillingLoading(null);
     }
   };
@@ -196,6 +224,16 @@ export function SettingsPage() {
                   className="px-4 py-2 text-sm rounded-xl border border-primary/10 disabled:opacity-50"
                 >
                   {billingLoading === 'portal' ? 'Abriendo...' : 'Gestionar suscripción'}
+                </button>
+              )}
+              {settings.saasBilling.plan === 'starter' && settings.saasBilling.stripeConfigured && (
+                <button
+                  type="button"
+                  disabled={billingLoading !== null}
+                  onClick={() => void syncBilling()}
+                  className="px-4 py-2 text-sm rounded-xl border border-primary/10 disabled:opacity-50"
+                >
+                  {billingLoading === 'sync' ? 'Sincronizando...' : 'Sincronizar plan con Stripe'}
                 </button>
               )}
             </div>

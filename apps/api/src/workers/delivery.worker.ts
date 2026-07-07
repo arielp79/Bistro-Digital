@@ -22,6 +22,25 @@ import type { IMenuItem } from '../modules/menu/menu-item.model.js';
 
 let worker: Worker<DeliveryJobData> | null = null;
 
+/** Delivery IA no pide modificadores en chat; usa la primera opción de grupos requeridos. */
+function fillRequiredModifiers(draft: OrderDraft, menuItems: IMenuItem[]): void {
+  for (const item of draft.items) {
+    const menuItem = menuItems.find((m) => m._id.toString() === item.menuItemId);
+    if (!menuItem) continue;
+
+    for (const group of menuItem.modifierGroups) {
+      const groupId = group.groupId.toString();
+      const hasSelection = item.selectedModifiers.some((s) => s.groupId === groupId);
+      if (!hasSelection && group.required && group.options.length > 0) {
+        item.selectedModifiers.push({
+          groupId,
+          optionId: group.options[0].optionId.toString(),
+        });
+      }
+    }
+  }
+}
+
 async function sendReply(
   tenant: ITenant,
   platform: DeliveryJobData['platform'],
@@ -49,10 +68,13 @@ async function processTextMessage(
 
   await DeliverySessionService.addMessage(session._id.toString(), 'user', text);
 
+  const freshSession =
+    (await DeliverySessionService.findById(session._id.toString())) ?? session;
+
   const intent = await AiService.extractDeliveryIntent(
     text,
     menuItems,
-    session.conversationHistory,
+    freshSession.conversationHistory,
     tenant.name,
     lang
   );
@@ -69,10 +91,10 @@ async function processTextMessage(
     return;
   }
 
-  if (intent.intent === 'check_status' && session.orderId) {
+  if (intent.intent === 'check_status' && freshSession.orderId) {
     const status = await OrderService.getOrderStatus(
       tenant._id.toString(),
-      session.orderId.toString()
+      freshSession.orderId.toString()
     );
     reply = `Tu pedido ${status.orderNumber} está en estado: *${status.status}*.`;
     await sendReply(tenant, platform, from, reply);
@@ -90,7 +112,7 @@ async function processTextMessage(
     return;
   }
 
-  const draft = await buildDraftFromIntent(session, intent, tenant, menuItems);
+  const draft = await buildDraftFromIntent(freshSession, intent, tenant, menuItems);
   if (!draft.items.length) {
     await sendReply(tenant, platform, from, reply);
     await DeliverySessionService.addMessage(session._id.toString(), 'assistant', reply);
@@ -121,7 +143,7 @@ async function processTextMessage(
   draft.deliveryFee = shipping.fee;
   draft.shippingDistanceKm = shipping.distanceKm;
 
-  const confirmText = lowerIncludesConfirm(text) || session.state === 'confirming';
+  const confirmText = lowerIncludesConfirm(text) || freshSession.state === 'confirming';
   if (!confirmText) {
     const subtotal = await estimateSubtotal(draft, menuItems);
     const summary = DeliveryService.formatOrderSummary(
@@ -146,6 +168,8 @@ async function processTextMessage(
     await DeliverySessionService.addMessage(session._id.toString(), 'assistant', reply);
     return;
   }
+
+  fillRequiredModifiers(draft, menuItems);
 
   const order = await OrderService.createOrder(tenant._id.toString(), tenant.slug, {
     type: 'delivery',
@@ -289,17 +313,29 @@ async function handleJob(job: Job<DeliveryJobData>): Promise<void> {
 
   const session = await DeliverySessionService.getOrCreate(tenantId, from, platform);
 
-  if (type === 'text' && text) {
-    await processTextMessage(tenant, session, from, text, platform);
-    return;
-  }
-
-  if (type === 'image') {
-    let url = imageUrl ?? null;
-    if (!url && imageId) {
-      url = await WhatsAppService.getMediaUrl(tenant, imageId);
+  try {
+    if (type === 'text' && text) {
+      await processTextMessage(tenant, session, from, text, platform);
+      return;
     }
-    await processVoucherImage(tenant, session, from, url, platform);
+
+    if (type === 'image') {
+      let url = imageUrl ?? null;
+      if (!url && imageId) {
+        url = await WhatsAppService.getMediaUrl(tenant, imageId);
+      }
+      await processVoucherImage(tenant, session, from, url, platform);
+    }
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error('[DeliveryWorker] Error procesando job:', job.id, detail);
+    if (type === 'text' && text) {
+      const reply =
+        'Hubo un problema al procesar tu mensaje. Si estabas confirmando un pedido, respondé *sí* de nuevo.';
+      await sendReply(tenant, platform, from, reply);
+      await DeliverySessionService.addMessage(session._id.toString(), 'assistant', reply);
+    }
+    throw err;
   }
 }
 

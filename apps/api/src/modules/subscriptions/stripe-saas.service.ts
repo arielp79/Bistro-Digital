@@ -82,7 +82,7 @@ export class StripeSaasService {
       mode: 'subscription',
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${base}/settings?billing=success&plan=${plan}`,
+      success_url: `${base}/settings?billing=success&plan=${plan}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${base}/settings?billing=cancel`,
       adaptive_pricing: { enabled: false },
       wallet_options: {
@@ -107,6 +107,34 @@ export class StripeSaasService {
     }
 
     return { url: session.url, sessionId: session.id };
+  }
+
+  static async confirmCheckoutSession(tenant: ITenant, sessionId: string): Promise<TenantPlan> {
+    const stripe = assertStripe();
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    if (session.metadata?.tenantId !== tenant._id.toString()) {
+      throw new AppError('La sesión de pago no pertenece a este restaurante', 403);
+    }
+
+    const planMeta = session.metadata?.plan;
+    if (!planMeta || !isOnboardingPlan(planMeta) || planMeta === 'starter') {
+      throw new AppError('Plan de checkout inválido', 400);
+    }
+
+    if (session.status !== 'complete' || session.payment_status !== 'paid') {
+      throw new AppError('El pago aún no se completó en Stripe', 402);
+    }
+
+    await StripeSaasService.applyPlanUpdate(tenant._id.toString(), planMeta, {
+      stripeCustomerId: typeof session.customer === 'string' ? session.customer : session.customer?.id,
+      stripeSubscriptionId:
+        typeof session.subscription === 'string' ? session.subscription : session.subscription?.id ?? '',
+      stripeSubscriptionStatus: 'active',
+    });
+
+    console.log(`[Stripe] Plan ${planMeta} confirmado por session ${sessionId} tenant ${tenant._id}`);
+    return planMeta;
   }
 
   static async createPortalSession(tenant: ITenant): Promise<{ url: string }> {
@@ -150,6 +178,44 @@ export class StripeSaasService {
       stripeSubscriptionId: '',
       stripeSubscriptionStatus: 'canceled',
     });
+  }
+
+  static async syncSubscriptionFromStripe(tenant: ITenant): Promise<TenantPlan> {
+    if (!tenant.stripeCustomerId) {
+      throw new AppError('Este restaurante aún no tiene cliente Stripe vinculado', 400);
+    }
+
+    const stripe = assertStripe();
+    const { data } = await stripe.subscriptions.list({
+      customer: tenant.stripeCustomerId,
+      status: 'all',
+      limit: 10,
+    });
+
+    const active = data.find((sub) => sub.status === 'active' || sub.status === 'trialing');
+    if (!active) {
+      throw new AppError('No hay suscripción activa en Stripe para este restaurante', 404);
+    }
+
+    const priceId = active.items.data[0]?.price?.id;
+    const planFromPrice = priceId ? resolvePlanFromPriceId(priceId) : null;
+    const planFromMeta = active.metadata?.plan;
+    const plan =
+      planFromPrice ??
+      (planFromMeta && isOnboardingPlan(planFromMeta) ? planFromMeta : null);
+
+    if (!plan) {
+      throw new AppError('No se pudo determinar el plan desde Stripe', 400);
+    }
+
+    await StripeSaasService.applyPlanUpdate(tenant._id.toString(), plan, {
+      stripeCustomerId: tenant.stripeCustomerId,
+      stripeSubscriptionId: active.id,
+      stripeSubscriptionStatus: active.status,
+    });
+
+    console.log(`[Stripe] Plan ${plan} sincronizado desde Stripe tenant ${tenant._id}`);
+    return plan;
   }
 
   static async handleWebhookEvent(event: Stripe.Event): Promise<void> {
