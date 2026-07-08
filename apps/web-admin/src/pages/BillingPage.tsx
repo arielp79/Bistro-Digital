@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { BillableOrderPublic, InvoicePublic, TenantAdminSettings } from '@bistro/shared-types';
-import { apiFetch } from '../lib/api';
+import { apiFetch, getTenantSlug } from '../lib/api';
 import { useAuthStore } from '../stores/auth.store';
 import { formatCurrency } from '../utils/format';
-
-const TENANT_SLUG = import.meta.env.VITE_TENANT_SLUG ?? 'bistro-digital';
 
 export function BillingPage() {
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -55,7 +53,7 @@ export function BillingPage() {
     try {
       const res = await fetch(`/api/v1/billing/${orderId}/invoice/pdf`, {
         headers: {
-          'X-Tenant-ID': TENANT_SLUG,
+          'X-Tenant-ID': getTenantSlug(),
           ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
       });
