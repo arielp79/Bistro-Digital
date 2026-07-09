@@ -32,16 +32,18 @@ class _MozoAppState extends ConsumerState<MozoApp> {
 
   void _syncSocket(AuthState auth) {
     if (auth.isAuthenticated && auth.token != null && auth.user != null) {
-      _connectSocket(auth.token!, auth.user!.tenantId);
+      final config = ref.read(appConfigProvider);
+      _connectSocket(auth.token!, auth.user!.tenantId, config.apiBaseUrl);
     } else {
       ref.read(socketServiceProvider).disconnect();
       ref.read(socketConnectedProvider.notifier).state = false;
     }
   }
 
-  void _connectSocket(String token, String tenantId) {
+  void _connectSocket(String token, String tenantId, String socketUrl) {
     final socket = ref.read(socketServiceProvider);
     socket.connect(
+      socketUrl: socketUrl,
       token: token,
       tenantId: tenantId,
       onConnected: () {
@@ -75,9 +77,10 @@ class _MozoAppState extends ConsumerState<MozoApp> {
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
+    final config = ref.watch(appConfigProvider);
 
     return MaterialApp(
-      title: 'Mozo — Bistró Digital',
+      title: 'Mozo — ${config.tenantSlug}',
       theme: AppTheme.light,
       home: auth.isAuthenticated ? const HomeScreen() : const LoginScreen(),
     );

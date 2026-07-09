@@ -14,6 +14,7 @@
     "dev:kitchen": "npm run dev --workspace=@bistro/web-kitchen",
     "dev:admin": "npm run dev --workspace=@bistro/web-admin",
     "dev:mozo": "cd apps/mobile-waiter && flutter run",
+    "build:mozo:apk": "cd apps/mobile-waiter && flutter build apk --release",
     "build": "npm run build --workspaces --if-present",
     "seed": "npm run seed --workspace=@bistro/api",
     "test": "npm run test:unit --workspace=@bistro/api",

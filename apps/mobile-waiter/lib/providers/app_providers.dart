@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/api_client.dart';
+import '../core/app_config_store.dart';
 import '../core/cache_service.dart';
 import '../core/models.dart';
 import '../core/socket_service.dart';
@@ -10,9 +11,61 @@ final sharedPrefsProvider = FutureProvider<SharedPreferences>((ref) async {
   return SharedPreferences.getInstance();
 });
 
+final appConfigStoreProvider = FutureProvider<AppConfigStore>((ref) async {
+  final prefs = await ref.watch(sharedPrefsProvider.future);
+  return AppConfigStore(prefs);
+});
+
+class AppConfigState {
+  final String tenantSlug;
+  final String apiBaseUrl;
+
+  const AppConfigState({required this.tenantSlug, required this.apiBaseUrl});
+
+  AppConfigState copyWith({String? tenantSlug, String? apiBaseUrl}) => AppConfigState(
+        tenantSlug: tenantSlug ?? this.tenantSlug,
+        apiBaseUrl: apiBaseUrl ?? this.apiBaseUrl,
+      );
+}
+
+class AppConfigNotifier extends StateNotifier<AppConfigState> {
+  AppConfigNotifier(this._ref)
+      : super(const AppConfigState(tenantSlug: 'bistro-digital', apiBaseUrl: 'http://localhost:3000')) {
+    _load();
+  }
+
+  final Ref _ref;
+
+  Future<void> _load() async {
+    try {
+      final store = await _ref.read(appConfigStoreProvider.future);
+      state = AppConfigState(tenantSlug: store.tenantSlug, apiBaseUrl: store.apiBaseUrl);
+    } catch (e) {
+      debugPrint('[Config] No se pudo cargar config: $e');
+    }
+  }
+
+  Future<void> setTenantSlug(String value) async {
+    final store = await _ref.read(appConfigStoreProvider.future);
+    await store.setTenantSlug(value);
+    state = state.copyWith(tenantSlug: store.tenantSlug);
+  }
+
+  Future<void> setApiBaseUrl(String value) async {
+    final store = await _ref.read(appConfigStoreProvider.future);
+    await store.setApiBaseUrl(value);
+    state = state.copyWith(apiBaseUrl: store.apiBaseUrl);
+  }
+}
+
+final appConfigProvider = StateNotifierProvider<AppConfigNotifier, AppConfigState>((ref) {
+  return AppConfigNotifier(ref);
+});
+
 final apiClientProvider = FutureProvider<ApiClient>((ref) async {
   final prefs = await ref.watch(sharedPrefsProvider.future);
-  final api = ApiClient(prefs);
+  final config = ref.watch(appConfigProvider);
+  final api = ApiClient(prefs, apiBaseUrl: config.apiBaseUrl, tenantSlug: config.tenantSlug);
   api.onTokensRefreshed = (access, refresh) {
     ref.read(authProvider.notifier).applyTokens(access);
   };

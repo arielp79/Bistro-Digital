@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/models.dart';
 import '../core/theme.dart';
 import '../providers/app_providers.dart';
+import 'order_detail_screen.dart';
 import '../widgets/status_chip.dart';
 
 class TableDetailScreen extends ConsumerWidget {
@@ -35,8 +36,33 @@ class TableDetailScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             Text('Zona: ${current.zone}', style: const TextStyle(color: Colors.grey)),
             Text('Capacidad: ${current.capacity} personas'),
-            if (current.currentOrderId != null)
-              Text('Pedido activo: ${current.currentOrderId}'),
+            if (current.currentOrderId != null) ...[
+              const SizedBox(height: 6),
+              Text('Pedido activo: #${current.currentOrderId}'),
+              const SizedBox(height: 10),
+              FilledButton.tonalIcon(
+                onPressed: () async {
+                  try {
+                    final api = await ref.read(apiClientProvider.future);
+                    final order = await api.fetchOrder(current.currentOrderId!);
+                    if (context.mounted) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => OrderDetailScreen(order: order)),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(e.toString())),
+                      );
+                    }
+                  }
+                },
+                icon: const Icon(Icons.receipt_long),
+                label: const Text('Ver pedido'),
+              ),
+            ],
             const SizedBox(height: 24),
             Text(
               'Cambiar estado',

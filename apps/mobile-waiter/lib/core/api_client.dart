@@ -2,8 +2,6 @@ import 'package:dio/dio.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'config.dart';
-
 import 'models.dart';
 
 
@@ -15,18 +13,21 @@ typedef AuthFailureCallback = void Function();
 
 
 class ApiClient {
-
-  ApiClient(this._prefs) {
+  ApiClient(
+    this._prefs, {
+    required String apiBaseUrl,
+    required String tenantSlug,
+  }) {
 
     _dio = Dio(BaseOptions(
 
-      baseUrl: AppConfig.apiBaseUrl,
+      baseUrl: apiBaseUrl,
 
       connectTimeout: const Duration(seconds: 10),
 
       receiveTimeout: const Duration(seconds: 15),
 
-      headers: {'X-Tenant-ID': AppConfig.tenantSlug},
+      headers: {'X-Tenant-ID': tenantSlug},
 
     ));
 
@@ -178,7 +179,7 @@ class ApiClient {
 
             opts.extra['retried'] = true;
 
-            opts.headers['Authorization'] = 'Bearer ${accessToken}';
+            opts.headers['Authorization'] = 'Bearer $accessToken';
 
             try {
 
@@ -376,6 +377,19 @@ class ApiClient {
 
         .toList();
 
+  }
+
+  Future<Order> fetchOrder(String orderId) async {
+    final res = await _dio.get('/api/v1/orders/$orderId');
+
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(
+      res.data as Map<String, dynamic>,
+      (d) => d as Map<String, dynamic>,
+    );
+
+    if (api.error != null || api.data == null) throw Exception(api.error);
+
+    return Order.fromJson(api.data!);
   }
 
 

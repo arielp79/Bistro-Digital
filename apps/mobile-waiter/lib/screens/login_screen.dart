@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../core/config.dart';
 import '../core/theme.dart';
 import '../providers/app_providers.dart';
 
@@ -12,20 +11,41 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _emailCtrl = TextEditingController(text: 'mozo@bistro-digital.app');
-  final _passCtrl = TextEditingController(text: 'mozo123');
+  final _emailCtrl = TextEditingController();
+  final _passCtrl = TextEditingController();
+  final _tenantCtrl = TextEditingController();
+  final _apiCtrl = TextEditingController();
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    final config = ref.read(appConfigProvider);
+    _tenantCtrl.text = config.tenantSlug;
+    _apiCtrl.text = config.apiBaseUrl;
+    ref.read(appConfigStoreProvider.future).then((store) {
+      if (mounted && store.lastEmail.isNotEmpty) {
+        _emailCtrl.text = store.lastEmail;
+      }
+    });
+  }
 
   @override
   void dispose() {
     _emailCtrl.dispose();
     _passCtrl.dispose();
+    _tenantCtrl.dispose();
+    _apiCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     setState(() => _error = null);
     try {
+      await ref.read(appConfigProvider.notifier).setTenantSlug(_tenantCtrl.text);
+      await ref.read(appConfigProvider.notifier).setApiBaseUrl(_apiCtrl.text);
+      await ref.read(appConfigStoreProvider.future).then((s) => s.setLastEmail(_emailCtrl.text));
+
       await ref.read(authProvider.notifier).login(
             _emailCtrl.text.trim(),
             _passCtrl.text,
@@ -38,6 +58,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final loading = ref.watch(authProvider).loading;
+    final config = ref.watch(appConfigProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -55,8 +76,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       color: AppTheme.primary,
                     ),
               ),
-              const Text('Bistró Digital', style: TextStyle(color: Colors.grey)),
+              Text(config.tenantSlug, style: const TextStyle(color: Colors.grey)),
               const SizedBox(height: 32),
+              TextField(
+                controller: _tenantCtrl,
+                textInputAction: TextInputAction.next,
+                decoration: const InputDecoration(
+                  labelText: 'Tenant (slug del restaurante)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _apiCtrl,
+                textInputAction: TextInputAction.next,
+                decoration: const InputDecoration(
+                  labelText: 'API Base URL (ej. http://192.168.0.10:3000)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
               TextField(
                 controller: _emailCtrl,
                 keyboardType: TextInputType.emailAddress,
@@ -88,7 +127,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'API: ${AppConfig.apiBaseUrl}',
+                'API: ${config.apiBaseUrl}',
                 style: const TextStyle(fontSize: 11, color: Colors.grey),
               ),
             ],

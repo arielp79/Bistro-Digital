@@ -1,5 +1,4 @@
 import 'package:socket_io_client/socket_io_client.dart' as io;
-import 'config.dart';
 import 'models.dart';
 
 typedef SocketCallback = void Function(String event, dynamic data);
@@ -8,6 +7,7 @@ class SocketService {
   io.Socket? _socket;
 
   void connect({
+    required String socketUrl,
     required String token,
     required String tenantId,
     required SocketCallback onEvent,
@@ -17,7 +17,7 @@ class SocketService {
     disconnect();
 
     _socket = io.io(
-      AppConfig.socketUrl,
+      socketUrl,
       io.OptionBuilder()
           .setTransports(['websocket', 'polling'])
           .enableAutoConnect()

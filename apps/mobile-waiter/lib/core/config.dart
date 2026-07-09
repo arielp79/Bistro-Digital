@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 
-class AppConfig {
-  static const tenantSlug = 'bistro-digital';
+class AppConfigDefaults {
+  static const defaultTenantSlug = 'bistro-digital';
 
-  static String get apiBaseUrl {
+  static String get defaultApiBaseUrl {
     const override = String.fromEnvironment('API_URL');
     if (override.isNotEmpty) return override;
 
@@ -13,6 +13,4 @@ class AppConfig {
     }
     return 'http://localhost:3000';
   }
-
-  static String get socketUrl => apiBaseUrl;
 }
