@@ -159,7 +159,7 @@ export class PlatformService {
     return {
       ...summary,
       domain: tenant.domain,
-      updatedAt: (tenant.updatedAt as Date).toISOString(),
+      updatedAt: tenant.updatedAt.toISOString(),
       metaStatus,
       integrations: {
         mercadopagoConfigured: Boolean(tenant.config.mercadopago?.accessToken),

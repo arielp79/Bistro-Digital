@@ -56,6 +56,8 @@ export interface ITenant extends Document {
     };
   };
   deletedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const tenantSchema = new Schema<ITenant>(

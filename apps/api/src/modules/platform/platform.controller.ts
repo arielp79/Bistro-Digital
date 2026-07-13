@@ -7,6 +7,11 @@ import { AuthService } from '../auth/auth.service.js';
 import { PlatformService } from './platform.service.js';
 import { ImpersonationAuditService } from './impersonation-audit.service.js';
 
+function paramId(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0] ?? '';
+  return value ?? '';
+}
+
 export const platformLogin = async (
   req: Request,
   res: Response,
@@ -73,7 +78,7 @@ export const updateTenantStatus = async (
       throw new AppError('isActive (boolean) requerido', 400);
     }
 
-    const tenant = await PlatformService.setTenantActive(req.params.tenantId, isActive);
+    const tenant = await PlatformService.setTenantActive(paramId(req.params.tenantId), isActive);
     res.json(apiSuccess(tenant));
   } catch (error) {
     next(error);
@@ -86,7 +91,7 @@ export const getTenantDetail = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const detail = await PlatformService.getTenantDetail(req.params.tenantId);
+    const detail = await PlatformService.getTenantDetail(paramId(req.params.tenantId));
     res.json(apiSuccess(detail));
   } catch (error) {
     next(error);
@@ -104,7 +109,7 @@ export const updateTenantPlan = async (
       throw new AppError('plan requerido (starter | pro | enterprise)', 400);
     }
 
-    const tenant = await PlatformService.setTenantPlan(req.params.tenantId, plan);
+    const tenant = await PlatformService.setTenantPlan(paramId(req.params.tenantId), plan);
     res.json(apiSuccess(tenant));
   } catch (error) {
     next(error);
@@ -123,7 +128,7 @@ export const impersonateTenant = async (
 
     const result = await AuthService.impersonateTenantAdmin(
       req.user.id,
-      req.params.tenantId,
+      paramId(req.params.tenantId),
       req.headers['user-agent'] ?? 'web',
       {
         ipAddress: req.ip,
@@ -167,7 +172,7 @@ export const deleteTenant = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const result = await PlatformService.softDeleteTenant(req.params.tenantId);
+    const result = await PlatformService.softDeleteTenant(paramId(req.params.tenantId));
     res.json(apiSuccess(result));
   } catch (error) {
     next(error);
@@ -217,7 +222,7 @@ export const endImpersonationLog = async (
       throw new AppError('Acceso denegado', 403);
     }
 
-    const log = await ImpersonationAuditService.endSession(req.params.auditLogId, req.user.id);
+    const log = await ImpersonationAuditService.endSession(paramId(req.params.auditLogId), req.user.id);
     res.json(apiSuccess(log));
   } catch (error) {
     next(error);

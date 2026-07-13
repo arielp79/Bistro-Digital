@@ -10,7 +10,7 @@ services:
     region: oregon
     branch: master
     healthCheckPath: /health
-    buildCommand: npm install && npm run build --workspace=@bistro/shared-types && npm run build --workspace=@bistro/validation-schemas && npm run build --workspace=@bistro/api
+    buildCommand: npm install --include=dev && npm run build --workspace=@bistro/shared-types && npm run build --workspace=@bistro/validation-schemas && npm run build --workspace=@bistro/api
     startCommand: npm run start --workspace=@bistro/api
     envVars:
       - key: NODE_ENV
