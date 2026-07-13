@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { BillableOrderPublic, InvoicePublic, TenantAdminSettings } from '@bistro/shared-types';
 import { apiFetch, getTenantSlug } from '../lib/api';
+import { apiUrl } from '../lib/api-base';
 import { useAuthStore } from '../stores/auth.store';
 import { formatCurrency } from '../utils/format';
 
@@ -51,7 +52,7 @@ export function BillingPage() {
 
   const openPdf = async (orderId: string) => {
     try {
-      const res = await fetch(`/api/v1/billing/${orderId}/invoice/pdf`, {
+      const res = await fetch(apiUrl(`/api/v1/billing/${orderId}/invoice/pdf`), {
         headers: {
           'X-Tenant-ID': getTenantSlug(),
           ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),

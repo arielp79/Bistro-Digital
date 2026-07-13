@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { apiUrl } from '../lib/api-base';
 import { useTenantStore } from './tenant.store';
 
 interface SessionState {
@@ -39,7 +40,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     if (!tenantSlug) return;
 
     try {
-      const res = await fetch(`/api/v1/tables/${tableId}`, {
+      const res = await fetch(apiUrl(`/api/v1/tables/${tableId}`), {
         headers: { 'X-Tenant-ID': tenantSlug },
       });
       const json = await res.json();

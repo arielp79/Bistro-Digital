@@ -1,5 +1,6 @@
 import type { MenuResponse } from '@bistro/shared-types';
 import { create } from 'zustand';
+import { apiUrl } from '../lib/api-base';
 import { useCartStore } from './cart.store';
 import { useTenantStore } from './tenant.store';
 
@@ -36,7 +37,7 @@ export const useMenuStore = create<MenuState>((set) => ({
     set({ loading: true, error: null });
 
     try {
-      const res = await fetch(`/api/v1/menu?lang=${resolvedLang}`, {
+      const res = await fetch(apiUrl(`/api/v1/menu?lang=${resolvedLang}`), {
         headers: { 'X-Tenant-ID': slug },
       });
       const json = await res.json();

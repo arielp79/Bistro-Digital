@@ -14,6 +14,7 @@ import { useSessionStore } from '../stores/session.store';
 
 import { useTenantStore } from '../stores/tenant.store';
 import { useTenantSlug } from '../hooks/useTenantSlug';
+import { apiUrl } from '../lib/api-base';
 
 import { formatCurrency } from '../utils/format';
 
@@ -171,11 +172,8 @@ export function CheckoutPage() {
     try {
 
       const res = await fetch(
-
-        `/api/v1/delivery/shipping?address=${encodeURIComponent(address)}`,
-
+        apiUrl(`/api/v1/delivery/shipping?address=${encodeURIComponent(address)}`),
         { headers: { 'X-Tenant-ID': slug } }
-
       );
 
       const raw = await res.text();
@@ -336,7 +334,7 @@ export function CheckoutPage() {
 
     try {
 
-      const res = await fetch(`/api/v1/orders?lang=${i18n.language}`, {
+      const res = await fetch(apiUrl(`/api/v1/orders?lang=${i18n.language}`), {
 
         method: 'POST',
 
@@ -371,11 +369,8 @@ export function CheckoutPage() {
       if (paymentMethod === 'mercadopago') {
 
         const prefRes = await fetch(
-
-          `/api/v1/payments/mercadopago/preference?orderId=${orderId}`,
-
+          apiUrl(`/api/v1/payments/mercadopago/preference?orderId=${orderId}`),
           { headers: { 'X-Tenant-ID': slug } }
-
         );
 
         const prefJson = await prefRes.json();

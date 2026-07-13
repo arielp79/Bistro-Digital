@@ -7,6 +7,7 @@ import {
   readSlugFromSearch,
   resolveTenantSlugFromHost,
 } from '../utils/tenant-resolve';
+import { apiUrl } from '../lib/api-base';
 
 const TENANT_STORAGE_KEY = 'bistro_tenant_slug';
 
@@ -70,7 +71,7 @@ export const useTenantStore = create<TenantState>((set, get) => ({
     get().setSlug(normalized);
 
     try {
-      const res = await fetch('/api/v1/tenant/config', {
+      const res = await fetch(apiUrl('/api/v1/tenant/config'), {
         headers: { 'X-Tenant-ID': normalized },
       });
       const json = await res.json();
@@ -97,7 +98,7 @@ export const useTenantStore = create<TenantState>((set, get) => ({
     get().setSlug(slug);
 
     try {
-      const res = await fetch(`/api/v1/tenant/resolve?host=${encodeURIComponent(hostname)}`);
+      const res = await fetch(apiUrl(`/api/v1/tenant/resolve?host=${encodeURIComponent(hostname)}`));
       const json = await res.json();
 
       if (!res.ok || json.error) {
@@ -124,7 +125,7 @@ export const useTenantStore = create<TenantState>((set, get) => ({
     set({ loading: true, error: null, config: null });
 
     try {
-      const res = await fetch('/api/v1/tenant/config', {
+      const res = await fetch(apiUrl('/api/v1/tenant/config'), {
         headers: { 'X-Tenant-ID': slug },
       });
       const json = await res.json();

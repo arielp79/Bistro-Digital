@@ -1,3 +1,5 @@
+import { apiUrl } from './api-base';
+
 const TENANT_SLUG = import.meta.env.VITE_TENANT_SLUG ?? 'bistro-digital';
 
 let accessToken: string | null = null;
@@ -39,7 +41,7 @@ async function refreshAccessToken(): Promise<string | null> {
 
   refreshPromise = (async () => {
     try {
-      const res = await fetch('/api/v1/auth/refresh', {
+      const res = await fetch(apiUrl('/api/v1/auth/refresh'), {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -91,7 +93,7 @@ export async function apiFetch<T>(
     headers['Content-Type'] = 'application/json';
   }
 
-  const res = await fetch(path, { ...options, headers, credentials: 'include' });
+  const res = await fetch(apiUrl(path), { ...options, headers, credentials: 'include' });
 
   if (res.status === 401 && allowRetry && accessToken) {
     const newToken = await refreshAccessToken();
@@ -110,7 +112,7 @@ export async function apiFetch<T>(
 }
 
 export async function authLogin<T>(email: string, password: string): Promise<T> {
-  const res = await fetch('/api/v1/auth/login', {
+  const res = await fetch(apiUrl('/api/v1/auth/login'), {
     method: 'POST',
     credentials: 'include',
     headers: {

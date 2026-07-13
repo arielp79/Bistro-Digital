@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { OrderStatus, OrderStatusResponse } from '@bistro/shared-types';
 import { useSessionStore } from '../stores/session.store';
 import { useTenantSlug } from '../hooks/useTenantSlug';
+import { apiUrl } from '../lib/api-base';
 import { deliveryMenuPath, buildMenuQuery } from '../utils/table-query';
 
 const STATUS_STEPS: OrderStatus[] = ['pending', 'confirmed', 'preparing', 'ready', 'delivered'];
@@ -31,7 +32,7 @@ export function OrderTrackingPage() {
 
     const fetchStatus = async () => {
       try {
-        const res = await fetch(`/api/v1/orders/${orderId}/status`, {
+        const res = await fetch(apiUrl(`/api/v1/orders/${orderId}/status`), {
           headers: { 'X-Tenant-ID': slug },
         });
         const json = await res.json();

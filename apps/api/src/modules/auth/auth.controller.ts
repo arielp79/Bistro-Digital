@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { loginSchema, refreshTokenSchema } from '@bistro/validation-schemas';
 import { AppError, apiSuccess } from '../../utils/api-response.js';
+import { refreshTokenCookieOptions } from '../../utils/refresh-cookie.js';
 import { AuthService } from './auth.service.js';
 
 export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -21,12 +22,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       req.headers['user-agent'] ?? 'web'
     );
 
-    res.cookie('refreshToken', result.tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie('refreshToken', result.tokens.refreshToken, refreshTokenCookieOptions());
 
     res.json(apiSuccess(result));
   } catch (error) {
@@ -47,12 +43,7 @@ export const refresh = async (req: Request, res: Response, next: NextFunction): 
 
     const tokens = await AuthService.refresh(parsed.data.refreshToken);
 
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie('refreshToken', tokens.refreshToken, refreshTokenCookieOptions());
 
     res.json(apiSuccess(tokens));
   } catch (error) {

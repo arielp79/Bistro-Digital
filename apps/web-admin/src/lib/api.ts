@@ -1,3 +1,5 @@
+import { apiUrl } from './api-base';
+
 const DEFAULT_TENANT_SLUG = import.meta.env.VITE_TENANT_SLUG ?? 'bistro-digital';
 
 let accessToken: string | null = null;
@@ -43,7 +45,7 @@ async function refreshAccessToken(): Promise<string | null> {
 
   refreshPromise = (async () => {
     try {
-      const res = await fetch('/api/v1/auth/refresh', {
+      const res = await fetch(apiUrl('/api/v1/auth/refresh'), {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -96,7 +98,7 @@ async function requestWithAuth<T>(
     headers['Content-Type'] = 'application/json';
   }
 
-  const res = await fetch(path, { ...options, headers, credentials: 'include' });
+  const res = await fetch(apiUrl(path), { ...options, headers, credentials: 'include' });
 
   if (res.status === 401 && allowRetry && accessToken) {
     const newToken = await refreshAccessToken();
@@ -131,7 +133,7 @@ export async function publicFetch<T>(path: string, options: RequestInit = {}): P
     headers['Content-Type'] = 'application/json';
   }
 
-  const res = await fetch(path, { ...options, headers });
+  const res = await fetch(apiUrl(path), { ...options, headers });
   const parsed = await parseResponse<T>(res);
   if (!parsed.ok) {
     throw new Error(parsed.error ?? `Error ${res.status}`);
@@ -145,7 +147,7 @@ export async function authLogin<T>(
   body: unknown,
   tenant: string
 ): Promise<T> {
-  const res = await fetch(path, {
+  const res = await fetch(apiUrl(path), {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -180,7 +182,7 @@ async function platformRequest<T>(
     headers['Content-Type'] = 'application/json';
   }
 
-  const res = await fetch(path, { ...options, headers, credentials: 'include' });
+  const res = await fetch(apiUrl(path), { ...options, headers, credentials: 'include' });
 
   if (res.status === 401 && allowRetry && accessToken) {
     const newToken = await refreshAccessToken();
@@ -212,7 +214,7 @@ export async function platformFetchWithMeta<T>(
 
 /** Login super-admin — sin tenant. */
 export async function platformLogin<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(path, {
+  const res = await fetch(apiUrl(path), {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },

@@ -1,3 +1,5 @@
+import { apiUrl } from '../lib/api-base';
+
 const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
 
 export function normalizeSlug(raw: string): string {
@@ -73,7 +75,7 @@ export async function resolveTenantSlugFromHost(hostname: string): Promise<strin
   if (!shouldResolveCustomDomain(hostname)) return null;
 
   try {
-    const res = await fetch(`/api/v1/tenant/resolve?host=${encodeURIComponent(hostname)}`);
+    const res = await fetch(apiUrl(`/api/v1/tenant/resolve?host=${encodeURIComponent(hostname)}`));
     const json = await res.json();
     if (!res.ok || json.error || !json.data?.slug) return null;
     return json.data.slug as string;

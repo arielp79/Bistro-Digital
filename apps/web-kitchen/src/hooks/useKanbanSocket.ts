@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import type { OrderPublic } from '@bistro/shared-types';
+import { getSocketUrl } from '../lib/api-base';
 import { useAuthStore } from '../stores/auth.store';
 import { useOrderStore } from '../stores/order.store';
 
@@ -30,7 +31,7 @@ export function useKanbanSocket() {
   useEffect(() => {
     if (!accessToken || !tenantId) return;
 
-    const socket = io(window.location.origin, {
+    const socket = io(getSocketUrl(), {
       auth: { token: accessToken, tenantId },
       transports: ['websocket', 'polling'],
     });

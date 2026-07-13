@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import type { TenantPlan } from '@bistro/shared-types';
 import { loginSchema } from '@bistro/validation-schemas';
 import { AppError, apiSuccess } from '../../utils/api-response.js';
+import { refreshTokenCookieOptions } from '../../utils/refresh-cookie.js';
 import { AuthService } from '../auth/auth.service.js';
 import { PlatformService } from './platform.service.js';
 import { ImpersonationAuditService } from './impersonation-audit.service.js';
@@ -23,12 +24,7 @@ export const platformLogin = async (
       req.headers['user-agent'] ?? 'web'
     );
 
-    res.cookie('refreshToken', result.tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie('refreshToken', result.tokens.refreshToken, refreshTokenCookieOptions());
 
     res.json(apiSuccess(result));
   } catch (error) {
@@ -135,12 +131,7 @@ export const impersonateTenant = async (
       }
     );
 
-    res.cookie('refreshToken', result.tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie('refreshToken', result.tokens.refreshToken, refreshTokenCookieOptions());
 
     res.json(apiSuccess(result));
   } catch (error) {
