@@ -1,0 +1,45 @@
+# Blueprint Render — API Bistró Digital
+# Dashboard: New → Blueprint → conectar este repo
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: bistro-api
+    runtime: node
+    plan: free
+    region: oregon
+    branch: master
+    healthCheckPath: /health
+    buildCommand: npm install && npm run build --workspace=@bistro/shared-types && npm run build --workspace=@bistro/validation-schemas && npm run build --workspace=@bistro/api
+    startCommand: npm run start --workspace=@bistro/api
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SKIP_DELIVERY_WORKER
+        value: "true"
+      - key: ONBOARDING_ENABLED
+        value: "true"
+      - key: API_DOCS_ENABLED
+        value: "false"
+      - key: PLATFORM_BASE_DOMAIN
+        value: saas-base.com
+      # Completar a mano en el dashboard (sync: false = te lo pide al crear):
+      - key: MONGODB_URI
+        sync: false
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      # Actualizar cuando existan URLs de Netlify:
+      - key: CORS_ORIGIN
+        sync: false
+      - key: CLIENT_BASE_URL
+        sync: false
+      - key: WEB_ADMIN_URL
+        sync: false
+      - key: API_URL
+        sync: false
+      - key: API_PUBLIC_URL
+        sync: false
