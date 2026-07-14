@@ -1,16 +1,16 @@
 # Netlify — menú QR (web-client). Un sitio = este archivo en la raíz.
-# Admin: crear otro sitio Netlify con build
-#   npm install && npm run build --workspace=@bistro/web-admin
+# Admin: otro sitio Netlify con build override:
+#   npm install --include=dev && npm run build --workspace=@bistro/shared-types && npm run build --workspace=@bistro/web-admin
 #   publish: apps/web-admin/dist
-# y la misma VITE_API_URL.
+#   env: VITE_API_URL=https://tu-api.onrender.com
 
 [build]
-  command = "npm install && npm run build --workspace=@bistro/web-client"
+  command = "npm install --include=dev && npm run build --workspace=@bistro/shared-types && npm run build --workspace=@bistro/web-client"
   publish = "apps/web-client/dist"
 
 [build.environment]
   NODE_VERSION = "20"
-  # Site settings → Environment variables:
+  # Site settings → Environment variables (obligatorio):
   # VITE_API_URL=https://tu-api.onrender.com
 
 [[redirects]]
