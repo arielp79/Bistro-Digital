@@ -154,11 +154,13 @@ export const useAuthStore = create<AuthState>()(
       name: 'bistro-admin-auth',
       version: 1,
       migrate: (persisted) => {
-        const state = persisted as Partial<AuthState> | undefined;
-        if (!state) return state as AuthState;
+        if (!persisted || typeof persisted !== 'object') {
+          return persisted as AuthState;
+        }
+        const state = persisted as Partial<AuthState>;
         // Limpiar slug demo antiguo si no hay sesión activa
         if (state.tenantSlug === 'bistro-digital' && !state.accessToken) {
-          return { ...state, tenantSlug: DEFAULT_TENANT_SLUG };
+          return { ...state, tenantSlug: DEFAULT_TENANT_SLUG } as AuthState;
         }
         return state as AuthState;
       },
