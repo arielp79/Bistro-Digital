@@ -1,6 +1,6 @@
 import { apiUrl } from './api-base';
 
-const DEFAULT_TENANT_SLUG = import.meta.env.VITE_TENANT_SLUG ?? 'bistro-digital';
+const DEFAULT_TENANT_SLUG = (import.meta.env.VITE_TENANT_SLUG as string | undefined)?.trim() ?? '';
 
 let accessToken: string | null = null;
 let refreshToken: string | null = null;
@@ -21,7 +21,7 @@ export function setRefreshToken(token: string | null) {
 }
 
 export function setTenantSlug(slug: string) {
-  tenantSlug = slug.trim().toLowerCase() || DEFAULT_TENANT_SLUG;
+  tenantSlug = slug.trim().toLowerCase();
 }
 
 export function getTenantSlug(): string {

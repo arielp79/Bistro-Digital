@@ -8,7 +8,8 @@ import {
   setTenantSlug,
 } from '../lib/api';
 
-const DEFAULT_TENANT_SLUG = import.meta.env.VITE_TENANT_SLUG ?? 'bistro-digital';
+/** Solo si se define VITE_TENANT_SLUG en build; sin demo hardcodeado. */
+const DEFAULT_TENANT_SLUG = (import.meta.env.VITE_TENANT_SLUG as string | undefined)?.trim() ?? '';
 
 interface AuthState {
   tenantSlug: string;
@@ -151,8 +152,19 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'bistro-admin-auth',
+      version: 1,
+      migrate: (persisted) => {
+        const state = persisted as Partial<AuthState> | undefined;
+        if (!state) return state as AuthState;
+        // Limpiar slug demo antiguo si no hay sesión activa
+        if (state.tenantSlug === 'bistro-digital' && !state.accessToken) {
+          return { ...state, tenantSlug: DEFAULT_TENANT_SLUG };
+        }
+        return state as AuthState;
+      },
       onRehydrateStorage: () => (state) => {
         if (state?.tenantSlug) setTenantSlug(state.tenantSlug);
+        else setTenantSlug(DEFAULT_TENANT_SLUG);
         if (state?.accessToken) setAccessToken(state.accessToken);
         if (state?.refreshToken) setRefreshToken(state.refreshToken);
       },
