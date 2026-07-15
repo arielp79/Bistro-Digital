@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { TablePublic } from '@bistro/shared-types';
+import { TableQrModal } from '../components/TableQrModal';
 import { apiFetch } from '../lib/api';
 import { buildTableQrUrl } from '../utils/admin';
 
@@ -17,6 +18,7 @@ export function TablesPage() {
   const [editing, setEditing] = useState<TablePublic | null>(null);
   const [form, setForm] = useState({ number: 1, label: '', zone: 'Salón', capacity: 4 });
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [qrTable, setQrTable] = useState<TablePublic | null>(null);
 
   const load = () => {
     apiFetch<TablePublic[]>('/api/v1/tables')
@@ -81,9 +83,14 @@ export function TablesPage() {
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Mesas</h1>
-        <button onClick={openCreate} className="px-4 py-2 bg-primary text-white text-sm rounded-lg">
+      <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold">Mesas</h1>
+          <p className="text-sm text-primary/50 mt-1">
+            Generá un QR por mesa para que el cliente abra el menú y pida.
+          </p>
+        </div>
+        <button type="button" onClick={openCreate} className="px-4 py-2 bg-primary text-white text-sm rounded-lg">
           + Mesa
         </button>
       </div>
@@ -153,9 +160,17 @@ export function TablesPage() {
                 <td className="px-4 py-3 text-primary/60">{table.zone}</td>
                 <td className="px-4 py-3">{table.capacity}</td>
                 <td className="px-4 py-3">{STATUS_LABELS[table.status] ?? table.status}</td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3 space-x-3">
                   <button
-                    onClick={() => copyQr(table)}
+                    type="button"
+                    onClick={() => setQrTable(table)}
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    Ver QR
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void copyQr(table)}
                     className="text-xs text-accent hover:underline"
                   >
                     {copiedId === table.id ? '¡Copiado!' : 'Copiar link'}
@@ -163,13 +178,15 @@ export function TablesPage() {
                 </td>
                 <td className="px-4 py-3 text-right space-x-2">
                   <button
+                    type="button"
                     onClick={() => openEdit(table)}
                     className="text-xs text-primary/60 hover:underline"
                   >
                     Editar
                   </button>
                   <button
-                    onClick={() => handleDelete(table.id)}
+                    type="button"
+                    onClick={() => void handleDelete(table.id)}
                     className="text-xs text-red-600 hover:underline"
                   >
                     Eliminar
@@ -183,6 +200,8 @@ export function TablesPage() {
           <p className="text-center text-primary/40 py-8">Sin mesas registradas</p>
         )}
       </div>
+
+      {qrTable && <TableQrModal table={qrTable} onClose={() => setQrTable(null)} />}
     </div>
   );
 }
