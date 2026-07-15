@@ -7,18 +7,23 @@ import { ImpersonationBanner } from './ImpersonationBanner';
 
 const DEFAULT_ADMIN_TITLE = 'Admin — Bistró Digital';
 
-const nav = [
+/** Piloto restaurante: oculta Delivery IA / Meta / AFIP del menú (VITE_PILOT_CORE=true). */
+const PILOT_CORE = import.meta.env.VITE_PILOT_CORE === 'true';
+
+const navAll = [
   { to: '/', label: 'Dashboard', icon: '📊' },
   { to: '/orders', label: 'Pedidos', icon: '📋' },
   { to: '/menu', label: 'Menú', icon: '🍽️' },
   { to: '/tables', label: 'Mesas', icon: '🪑' },
   { to: '/stock', label: 'Stock', icon: '📦' },
   { to: '/users', label: 'Usuarios', icon: '👥' },
-  { to: '/delivery', label: 'Delivery IA', icon: '🤖' },
-  { to: '/pilot-setup', label: 'Cliente piloto', icon: '🚀' },
-  { to: '/billing', label: 'Facturación', icon: '🧾' },
+  { to: '/delivery', label: 'Delivery IA', icon: '🤖', advanced: true },
+  { to: '/pilot-setup', label: 'Cliente piloto', icon: '🚀', advanced: true },
+  { to: '/billing', label: 'Facturación AFIP', icon: '🧾', advanced: true },
   { to: '/settings', label: 'Configuración', icon: '⚙️' },
 ];
+
+const nav = PILOT_CORE ? navAll.filter((item) => !item.advanced) : navAll;
 
 export function AdminLayout() {
   const navigate = useNavigate();

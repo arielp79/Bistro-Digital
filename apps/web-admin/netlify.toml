@@ -1,0 +1,15 @@
+# Sitio Netlify del ADMIN — en Build settings poner:
+#   Base directory: apps/web-admin
+# Env: VITE_API_URL, VITE_WEB_CLIENT_URL, VITE_PILOT_CORE=true, NODE_VERSION=20
+
+[build]
+  command = "cd ../.. && npm install --include=dev && npm run build --workspace=@bistro/shared-types && npm run build --workspace=@bistro/web-admin"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

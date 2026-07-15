@@ -1,8 +1,5 @@
-# Netlify — menú QR (web-client). Un sitio = este archivo en la raíz.
-# Admin: otro sitio Netlify con build override:
-#   npm install --include=dev && npm run build --workspace=@bistro/shared-types && npm run build --workspace=@bistro/web-admin
-#   publish: apps/web-admin/dist
-#   env: VITE_API_URL=https://tu-api.onrender.com
+# Netlify — menú QR (web-client). Este archivo = sitio del MENÚ.
+# Admin: segundo sitio → config file `netlify.admin.toml` (ver documentos/Piloto_Online_Restaurante.md).
 
 [build]
   command = "npm install --include=dev && npm run build --workspace=@bistro/shared-types && npm run build --workspace=@bistro/web-client"
@@ -10,7 +7,6 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  # Site settings → Environment variables (obligatorio):
   # VITE_API_URL=https://tu-api.onrender.com
 
 [[redirects]]

@@ -1,0 +1,17 @@
+# Alternativa: config en raíz para el sitio admin.
+# Preferible: Base directory = apps/web-admin (usa apps/web-admin/netlify.toml).
+#
+# Si Netlify permite "Configuration file path", apuntá a este archivo;
+# si no, usá Base directory apps/web-admin.
+
+[build]
+  command = "npm install --include=dev && npm run build --workspace=@bistro/shared-types && npm run build --workspace=@bistro/web-admin"
+  publish = "apps/web-admin/dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
