@@ -17,6 +17,7 @@
     "build:mozo:apk": "cd apps/mobile-waiter && flutter build apk --release",
     "build": "npm run build --workspaces --if-present",
     "seed": "npm run seed --workspace=@bistro/api",
+    "seed:platform": "npm run seed:platform --workspace=@bistro/api",
     "test": "npm run test:unit --workspace=@bistro/api",
     "test:unit": "npm run test:unit --workspace=@bistro/api",
     "test:preflight": "npm run test:preflight --workspace=@bistro/api",

@@ -1,10 +1,14 @@
-# Sitio Netlify del ADMIN — en Build settings poner:
-#   Base directory: apps/web-admin
+# Sitio Netlify del ADMIN.
+# En Netlify:
+#   - Base directory: VACÍO (raíz del repo)
+#   - O Config file path: apps/web-admin/netlify.toml
 # Env: VITE_API_URL, VITE_WEB_CLIENT_URL, VITE_PILOT_CORE=true, NODE_VERSION=20
+#
+# No usar `cd ../..`: con cwd = raíz del repo eso termina en /opt (EACCES).
 
 [build]
-  command = "cd ../.. && npm install --include=dev && npm run build --workspace=@bistro/shared-types && npm run build --workspace=@bistro/web-admin"
-  publish = "dist"
+  command = "npm install --include=dev && npm run build --workspace=@bistro/shared-types && npm run build --workspace=@bistro/web-admin"
+  publish = "apps/web-admin/dist"
 
 [build.environment]
   NODE_VERSION = "20"

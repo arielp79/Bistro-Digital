@@ -49,10 +49,16 @@ Probar: `https://TU-MENU.netlify.app/menu?tenant=bistro-digital&table=ID`
 ## 3) Admin / gestión (Netlify) — sitio 2 (nuevo)
 
 1. Netlify → **Add new site** → mismo repo `Bistro-Digital`, branch `master`.
-2. Build settings:
-   - **Base directory:** `apps/web-admin`  
-     (así usa `apps/web-admin/netlify.toml` y **no** el del menú)
-   - Publish: `dist` (ya viene en el toml)
+2. Build settings (crítico — distinto al menú):
+
+| Campo | Valor |
+|-------|--------|
+| **Base directory** | *(vacío — raíz del repo)* |
+| **Configuration file** | `apps/web-admin/netlify.toml` |
+| Publish | `apps/web-admin/dist` (lo toma el toml) |
+
+> No uses Base directory `apps/web-admin` con `cd ../..`: Netlify ya corre en la raíz y el build falla con `EACCES` en `/opt/package-lock.json`.
+
 3. Environment variables:
 
 | Key | Value |

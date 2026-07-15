@@ -7,6 +7,7 @@
     "build": "tsc",
     "start": "node dist/app.js",
     "seed": "tsx src/scripts/seed.ts",
+    "seed:platform": "tsx src/scripts/seed-platform.ts",
     "test": "vitest run --config vitest.config.ts && vitest run --config vitest.integration.config.ts",
     "test:unit": "vitest run --config vitest.config.ts",
     "test:integration": "vitest run --config vitest.integration.config.ts",
