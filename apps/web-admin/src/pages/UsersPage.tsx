@@ -95,15 +95,15 @@ export function UsersPage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Usuarios</h1>
+    <div className="p-4 sm:p-6">
+      <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
+        <h1 className="text-xl sm:text-2xl font-bold">Usuarios</h1>
         <button
           onClick={() => {
             resetForm();
             setShowForm(!showForm);
           }}
-          className="px-4 py-2 bg-primary text-white text-sm rounded-lg"
+          className="px-4 py-2 bg-primary text-white text-sm rounded-lg shrink-0"
         >
           + Usuario
         </button>
@@ -114,7 +114,7 @@ export function UsersPage() {
       {showForm && (
         <form
           onSubmit={editingId ? handleUpdate : handleCreate}
-          className="bg-surface rounded-xl border border-primary/10 p-5 mb-6 grid grid-cols-2 gap-3"
+          className="bg-surface rounded-xl border border-primary/10 p-4 sm:p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3"
         >
           <input
             placeholder="Nombre"
@@ -153,7 +153,7 @@ export function UsersPage() {
             ))}
           </select>
           {editingId && (
-            <label className="flex items-center gap-2 text-sm col-span-2">
+            <label className="flex items-center gap-2 text-sm sm:col-span-2">
               <input
                 type="checkbox"
                 checked={form.isActive}
@@ -164,15 +164,15 @@ export function UsersPage() {
           )}
           <button
             type="submit"
-            className="col-span-2 py-2 bg-accent text-primary font-medium rounded-lg text-sm"
+            className="sm:col-span-2 py-2 bg-accent text-primary font-medium rounded-lg text-sm"
           >
             {editingId ? 'Guardar cambios' : 'Crear usuario'}
           </button>
         </form>
       )}
 
-      <div className="bg-surface rounded-xl border border-primary/10 overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-surface rounded-xl border border-primary/10 overflow-x-auto">
+        <table className="w-full text-sm min-w-[520px]">
           <thead className="bg-primary/5 text-left">
             <tr>
               <th className="px-4 py-3">Nombre</th>

@@ -82,15 +82,15 @@ export function TablesPage() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold">Mesas</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">Mesas</h1>
           <p className="text-sm text-primary/50 mt-1">
             Generá un QR por mesa para que el cliente abra el menú y pida.
           </p>
         </div>
-        <button type="button" onClick={openCreate} className="px-4 py-2 bg-primary text-white text-sm rounded-lg">
+        <button type="button" onClick={openCreate} className="px-4 py-2 bg-primary text-white text-sm rounded-lg shrink-0">
           + Mesa
         </button>
       </div>
@@ -100,7 +100,7 @@ export function TablesPage() {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="mb-6 bg-surface border border-primary/10 rounded-xl p-5 grid grid-cols-2 gap-3"
+          className="mb-6 bg-surface border border-primary/10 rounded-xl p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-3"
         >
           <input
             type="number"
@@ -132,15 +132,15 @@ export function TablesPage() {
           />
           <button
             type="submit"
-            className="col-span-2 py-2 bg-accent text-primary font-medium rounded-lg text-sm"
+            className="sm:col-span-2 py-2 bg-accent text-primary font-medium rounded-lg text-sm"
           >
             {editing ? 'Actualizar' : 'Crear mesa'}
           </button>
         </form>
       )}
 
-      <div className="bg-surface rounded-xl border border-primary/10 overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-surface rounded-xl border border-primary/10 overflow-x-auto">
+        <table className="w-full text-sm min-w-[640px]">
           <thead className="bg-primary/5 text-left">
             <tr>
               <th className="px-4 py-3">#</th>

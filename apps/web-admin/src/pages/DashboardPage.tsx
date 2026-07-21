@@ -33,8 +33,8 @@ export function DashboardPage() {
   }, []);
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+    <div className="p-4 sm:p-6 space-y-6">
+      <h1 className="text-xl sm:text-2xl font-bold">Dashboard</h1>
 
       {error && <p className="text-red-600 text-sm">{error}</p>}
 

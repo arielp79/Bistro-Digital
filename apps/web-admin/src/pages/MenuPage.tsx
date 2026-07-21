@@ -166,9 +166,9 @@ export function MenuPage() {
   const categoryName = (id: string) => categories.find((c) => c._id === id)?.name.es ?? '—';
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Menú</h1>
+    <div className="p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold">Menú</h1>
         <div className="flex gap-2">
           <button
             onClick={() => setTab('items')}
@@ -196,12 +196,12 @@ export function MenuPage() {
             + Categoría
           </button>
           {showCatForm && (
-            <form onSubmit={handleCreateCategory} className="mb-6 flex gap-2 items-end">
+            <form onSubmit={handleCreateCategory} className="mb-6 flex flex-col sm:flex-row gap-2 sm:items-end">
               <input
                 placeholder="Nombre"
                 value={catName}
                 onChange={(e) => setCatName(e.target.value)}
-                className="px-3 py-2 border rounded-lg text-sm"
+                className="px-3 py-2 border rounded-lg text-sm flex-1"
                 required
               />
               <input
@@ -209,15 +209,15 @@ export function MenuPage() {
                 placeholder="Orden"
                 value={catSort}
                 onChange={(e) => setCatSort(+e.target.value)}
-                className="px-3 py-2 border rounded-lg text-sm w-24"
+                className="px-3 py-2 border rounded-lg text-sm w-full sm:w-24"
               />
               <button type="submit" className="px-4 py-2 bg-accent text-primary rounded-lg text-sm font-medium">
                 Guardar
               </button>
             </form>
           )}
-          <div className="bg-surface rounded-xl border border-primary/10 overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="bg-surface rounded-xl border border-primary/10 overflow-x-auto">
+            <table className="w-full text-sm min-w-[360px]">
               <thead className="bg-primary/5 text-left">
                 <tr>
                   <th className="px-4 py-3">Nombre</th>
@@ -258,10 +258,10 @@ export function MenuPage() {
           {showItemForm && (
             <form
               onSubmit={handleSaveItem}
-              className="mb-6 bg-surface border border-primary/10 rounded-xl p-5 space-y-3"
+              className="mb-6 bg-surface border border-primary/10 rounded-xl p-4 sm:p-5 space-y-3"
             >
               <h3 className="font-semibold">{editingItem ? 'Editar ítem' : 'Nuevo ítem'}</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <input
                   placeholder="SKU"
                   value={itemForm.sku}
@@ -370,8 +370,8 @@ export function MenuPage() {
             </form>
           )}
 
-          <div className="bg-surface rounded-xl border border-primary/10 overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="bg-surface rounded-xl border border-primary/10 overflow-x-auto">
+            <table className="w-full text-sm min-w-[640px]">
               <thead className="bg-primary/5 text-left">
                 <tr>
                   <th className="px-4 py-3">SKU</th>

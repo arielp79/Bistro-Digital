@@ -43,12 +43,12 @@ export function StockPage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Stock</h1>
+    <div className="p-4 sm:p-6">
+      <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
+        <h1 className="text-xl sm:text-2xl font-bold">Stock</h1>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 bg-primary text-white text-sm rounded-lg"
+          className="px-4 py-2 bg-primary text-white text-sm rounded-lg shrink-0"
         >
           + Ingrediente
         </button>
@@ -57,12 +57,12 @@ export function StockPage() {
       {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
 
       {showForm && (
-        <form onSubmit={handleCreate} className="bg-surface rounded-xl border border-primary/10 p-5 mb-6 grid grid-cols-2 gap-3">
+        <form onSubmit={handleCreate} className="bg-surface rounded-xl border border-primary/10 p-4 sm:p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <input
             placeholder="Nombre"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="px-3 py-2 border rounded-lg text-sm col-span-2"
+            className="px-3 py-2 border rounded-lg text-sm sm:col-span-2"
             required
           />
           <select
@@ -94,14 +94,14 @@ export function StockPage() {
             onChange={(e) => setForm({ ...form, supplier: e.target.value })}
             className="px-3 py-2 border rounded-lg text-sm"
           />
-          <button type="submit" className="col-span-2 py-2 bg-accent text-primary font-medium rounded-lg text-sm">
+          <button type="submit" className="sm:col-span-2 py-2 bg-accent text-primary font-medium rounded-lg text-sm">
             Guardar
           </button>
         </form>
       )}
 
-      <div className="bg-surface rounded-xl border border-primary/10 overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-surface rounded-xl border border-primary/10 overflow-x-auto">
+        <table className="w-full text-sm min-w-[520px]">
           <thead className="bg-primary/5 text-left">
             <tr>
               <th className="px-4 py-3">Ingrediente</th>

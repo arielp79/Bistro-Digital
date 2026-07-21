@@ -36,14 +36,16 @@ export function KanbanColumn({ status, label, color, orders, onAdvance, onCancel
   };
 
   return (
-    <div className={`flex flex-col min-w-[260px] max-w-[280px] rounded-xl border-t-4 ${color}`}>
+    <div
+      className={`flex flex-col shrink-0 w-[min(85vw,300px)] sm:w-auto sm:min-w-[260px] sm:max-w-[280px] rounded-xl border-t-4 snap-center ${color}`}
+    >
       <div className="px-3 py-2 flex items-center justify-between">
         <h2 className="font-semibold text-sm">{label}</h2>
         <span className="text-xs font-medium bg-white/80 px-2 py-0.5 rounded-full">
           {columnOrders.length}
         </span>
       </div>
-      <div className="flex-1 px-2 pb-2 space-y-2 overflow-y-auto max-h-[calc(100vh-180px)]">
+      <div className="flex-1 px-2 pb-2 space-y-2 overflow-y-auto max-h-[calc(100vh-220px)] sm:max-h-[calc(100vh-180px)]">
         {columnOrders.length === 0 ? (
           <p className="text-xs text-primary/30 text-center py-8">Sin pedidos</p>
         ) : (

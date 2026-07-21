@@ -144,8 +144,8 @@ export function SettingsPage() {
   };
 
   return (
-    <div className="p-6 max-w-2xl">
-      <h1 className="text-2xl font-bold mb-6">Configuración</h1>
+    <div className="p-4 sm:p-6 max-w-2xl">
+      <h1 className="text-xl sm:text-2xl font-bold mb-6">Configuración</h1>
       {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
       {saved && <p className="text-green-600 text-sm mb-4">Configuración guardada</p>}
       {billingNotice === 'success' && (
@@ -174,7 +174,7 @@ export function SettingsPage() {
       )}
 
       {settings?.saasBilling && (
-        <section className="mb-6 rounded-xl bg-surface border border-primary/10 p-6 space-y-4">
+        <section className="mb-6 rounded-xl bg-surface border border-primary/10 p-4 sm:p-6 space-y-4">
           <div className="flex items-center justify-between gap-4">
             <div>
               <h2 className="font-semibold">Plan SaaS</h2>
@@ -275,7 +275,7 @@ export function SettingsPage() {
               <option value="pt">Português</option>
             </select>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-sm text-primary/50">Color primario</label>
               <input

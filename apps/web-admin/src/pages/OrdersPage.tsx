@@ -19,15 +19,15 @@ export function OrdersPage() {
   }, [fetchOrders]);
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex items-center justify-between gap-4">
+    <div className="p-4 sm:p-6 space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Pedidos en vivo</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">Pedidos en vivo</h1>
           <p className="text-sm text-primary/50">
             {orders.length} activos · actualización en tiempo real
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <span
             className={`text-xs px-2 py-1 rounded-full ${
               connected ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
@@ -49,7 +49,9 @@ export function OrdersPage() {
         <p className="text-sm text-primary/40">Cargando pedidos...</p>
       )}
 
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <p className="text-xs text-primary/40 sm:hidden">Deslizá horizontalmente para ver columnas →</p>
+
+      <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0">
         {KANBAN_COLUMNS.map((col) => (
           <KanbanColumn
             key={col.status}
